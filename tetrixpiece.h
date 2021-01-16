@@ -36,7 +36,7 @@ public:
 
     static constexpr int TetrixShapeCount  = 8;
     static constexpr int TetrixPieceBlocks  = 4;
-    static const QPoint coordsTable_[TetrixShapeCount][TetrixPieceBlocks];
+    static const QPoint CoordinatesTable[TetrixShapeCount][TetrixPieceBlocks];
 
     Q_INVOKABLE QVariantMap getBoundOfNextRotation() const {
         TetrixPiece result;
@@ -64,7 +64,7 @@ public:
             return;
 
         if (m_shape == ZShape || m_shape == SShape || m_shape == LineShape)
-            if (coordsTable_[m_shape][0] == m_coords[0])
+            if (CoordinatesTable[m_shape][0] == m_coords[0])
                 rotateLeft();
             else
                 rotateRight();
@@ -79,7 +79,7 @@ public:
         if (shape != m_shape) {
 
             for (int i = 0; i < TetrixPieceBlocks; i++) {
-                m_coords[i] = coordsTable_[shape][i];
+                m_coords[i] = CoordinatesTable[shape][i];
             }
 
             m_shape = shape;

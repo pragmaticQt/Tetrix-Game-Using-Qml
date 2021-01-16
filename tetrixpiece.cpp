@@ -1,7 +1,7 @@
 #include "tetrixpiece.h"
 
 
-const QPoint TetrixPiece::coordsTable_[TetrixShapeCount][TetrixPieceBlocks] = {
+const QPoint TetrixPiece::CoordinatesTable[TetrixShapeCount][TetrixPieceBlocks] = {
         { { 0, 0 },   { 0, 0 },   { 0, 0 },   { 0, 0 } },
         { { 0, -1 },  { 0, 0 },   { -1, 0 },  { -1, 1 } },// Z
         { { 0, -1 },  { 0, 0 },   { 1, 0 },   { 1, 1 } }, // S

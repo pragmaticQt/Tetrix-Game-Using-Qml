@@ -6,14 +6,14 @@ Board {
 
     property alias logic: connections.target
 
-    property point centerOfPiece: Qt.point(4, 2)
-    readonly property size boardSize: Qt.size(10, 6)
+    property point centerOfPiece: Qt.point(4, 4)
+    readonly property size boardSize: Qt.size(10, 10)
 
     Connections {
         id: connections
 
         function onAddBlocks(points) {
-//            model_.setState(row, column, GameBoard.Occupied)
+            //            model_.setState(row, column, GameBoard.Occupied)
         }
 
         function onEraseRow( row ){
@@ -35,32 +35,50 @@ Board {
     Component.onCompleted: updatePiece()
 
     function moveDown() {
+        clearOldPiece()
         centerOfPiece.y += 1
         updatePiece()
     }
     function moveLeft() {
+        clearOldPiece()
         centerOfPiece.x -= 1
         updatePiece()
     }
     function moveRight() {
+        clearOldPiece()
         centerOfPiece.x += 1
         updatePiece()
     }
     function updatePiece() {
-
-        model_.resetAll()
-
-        var points = piece.points;
-
-        for (let i = 0; i < points.length; i++) {
-            var point = points[i]
-            var row = centerOfPiece.y+point.y
-            var column = centerOfPiece.x+point.x
-            model_.setState(row, column, GameBoard.Occupied)
-        }
+        fillNewPiece()
         model_.dataChanged()
     }
+    function fillNewPiece() {
+        var points = piece.points
+
+        for (let i = 0; i < 4; ++i) {
+            var point = points[i]
+            point.x += centerOfPiece.x
+            point.y += centerOfPiece.y
+        }
+
+        model_.fill(points)
+    }
+
+    function clearOldPiece() {
+        var points = piece.points
+
+        for (let i = 0; i < 4; ++i) {
+            var point = points[i]
+            point.x += centerOfPiece.x
+            point.y += centerOfPiece.y
+        }
+
+        model_.reset(points)
+    }
+
     function rotatePiece() {
+        clearOldPiece()
         piece.rotate()
     }
 

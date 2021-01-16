@@ -3,9 +3,11 @@
 
 #include <QAbstractItemModel>
 #include <QSize>
+#include <QPoint>
 #include <QDebug>
 #include <vector>
 #include <algorithm>
+
 
 class GameBoard : public QAbstractTableModel
 {
@@ -21,7 +23,7 @@ public:
     void setSize(QSize size) {
 
         if (m_size != size) {
-            qDebug() << "setSize" << size;
+//            qDebug() << "setSize" << size;
             m_size = size;
             // resize board and fill each cell Empty
             m_board.clear();
@@ -30,7 +32,7 @@ public:
                 cell.resize(m_size.width());
                 std::fill(begin(cell), end(cell), Empty);
             }
-            qDebug() << "m_board" << m_board;
+//            qDebug() << "m_board" << m_board;
         }
     }
 
@@ -41,7 +43,20 @@ public:
     };
     Q_ENUM(State)
 
-
+    Q_INVOKABLE  void fill(QVariantList points) {
+//        qDebug() << points;
+        for ( auto &point: points ) {
+            auto pt = point.toPoint();
+            m_board[pt.y()][pt.x()] = Occupied;
+        }
+    }
+    Q_INVOKABLE  void reset(QVariantList points) {
+//        qDebug() << points;
+        for ( auto &point: points ) {
+            auto pt = point.toPoint();
+            m_board[pt.y()][pt.x()] = Empty;
+        }
+    }
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(begin(row), end(row), Empty); }
     Q_INVOKABLE State getState(int row, int col) const {
         if((size_t) row >= m_board.size() || row < 0)

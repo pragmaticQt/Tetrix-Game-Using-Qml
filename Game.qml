@@ -22,71 +22,78 @@ Board {
     }
 
     Keys.onPressed: {
-        if (event.key === Qt.Key_Space) rotatePiece();
+        if (event.key === Qt.Key_Space) piece.next();
 
-        if (event.key === Qt.Key_Left) moveLeft();
+        if (event.key === Qt.Key_Left) piece.goLeft();
 
-        if (event.key === Qt.Key_Right) moveRight();
+        if (event.key === Qt.Key_Right) piece.goRight();
 
-        if (event.key === Qt.Key_Down) moveDown();
+        if (event.key === Qt.Key_Down) piece.goDown();
 
     }
 
-    Component.onCompleted: updatePiece()
+    Component.onCompleted: _.updatePiece()
 
-    function moveDown() {
-        clearOldPiece()
-        centerOfPiece.y += 1
-        updatePiece()
-    }
-    function moveLeft() {
-        clearOldPiece()
-        centerOfPiece.x -= 1
-        updatePiece()
-    }
-    function moveRight() {
-        clearOldPiece()
-        centerOfPiece.x += 1
-        updatePiece()
-    }
-    function updatePiece() {
-        fillNewPiece()
-        model_.dataChanged()
-    }
-    function fillNewPiece() {
-        var points = piece.points
+    QtObject {// internal
+        id: _
 
-        for (let i = 0; i < 4; ++i) {
-            var point = points[i]
-            point.x += centerOfPiece.x
-            point.y += centerOfPiece.y
+        function updatePiece() {
+            fillNewPiece()
+            model_.dataChanged()
         }
 
-        model_.fill(points)
-    }
+        function fillNewPiece() {
+            var points = piece.points
 
-    function clearOldPiece() {
-        var points = piece.points
+            for (let i = 0; i < 4; ++i) {
+                var point = points[i]
+                point.x += centerOfPiece.x
+                point.y += centerOfPiece.y
+            }
 
-        for (let i = 0; i < 4; ++i) {
-            var point = points[i]
-            point.x += centerOfPiece.x
-            point.y += centerOfPiece.y
+            model_.fill(points)
         }
 
-        model_.reset(points)
-    }
+        function clearOldPiece() {
+            var points = piece.points
 
-    function rotatePiece() {
-        clearOldPiece()
-        piece.rotate()
+            for (let i = 0; i < 4; ++i) {
+                var point = points[i]
+                point.x += centerOfPiece.x
+                point.y += centerOfPiece.y
+            }
+
+            model_.reset(points)
+        }
     }
 
     TetrixPiece {
         id: piece
         shape: TetrixPiece.LShape
-        onPointsChanged: updatePiece()
+        onPointsChanged: _.updatePiece()
 
+        function goDown() {
+            _.clearOldPiece()
+            centerOfPiece.y += 1
+            _.updatePiece()
+        }
+
+        function goLeft() {
+            _.clearOldPiece()
+            centerOfPiece.x -= 1
+            _.updatePiece()
+        }
+
+        function goRight() {
+            _.clearOldPiece()
+            centerOfPiece.x += 1
+            _.updatePiece()
+        }
+
+        function next() {
+            _.clearOldPiece()
+            piece.rotate()
+        }
     }
 
     GameBoard {

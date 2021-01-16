@@ -2,48 +2,63 @@ import QtQuick 2.0
 import io.qt.examples.Tetrix 1.0
 
 Board {
-    focus: true
+    id: root
 
     property alias logic: connections.target
 
-    property point centerOfPiece: Qt.point(4, 4)
-    readonly property size boardSize: Qt.size(10, 10)
+    property point centerOfPiece: startPoint
+    readonly property size boardSize: Qt.size(11, 10)
+    readonly property point startPoint: Qt.point(5, 1)
+
+    signal gameRunning()
+    signal gamePaused()
+    signal gameOver()
 
     Connections {
         id: connections
 
-        function onAddBlocks(points) {
-            //            model_.setState(row, column, GameBoard.Occupied)
+        function onStartGame() {
+            centerOfPiece = startPoint
         }
 
-        function onEraseRow( row ){
+        function onStopGame(){
+        }
 
+        function onPauseGame() {
+        }
+
+        function onEesumeGame() {
         }
     }
 
+    focus: true
     Keys.onPressed: {
-        if (event.key === Qt.Key_Space) piece.next();
+        if (event.key === Qt.Key_Space) pieceController.tryRotate()
 
-        if (event.key === Qt.Key_Left) piece.goLeft();
+        if (event.key === Qt.Key_Left) pieceController.tryGoLeft()
 
-        if (event.key === Qt.Key_Right) piece.goRight();
+        if (event.key === Qt.Key_Right) pieceController.tryGoRight()
 
-        if (event.key === Qt.Key_Down) piece.goDown();
+        if (event.key === Qt.Key_Down) pieceController.tryGoDown()
 
     }
 
-    Component.onCompleted: _.updatePiece()
+    Component.onCompleted: { _.fillAndUpdate(piece.points); }
 
     QtObject {// internal
         id: _
 
-        function updatePiece() {
-            fillNewPiece()
-            model_.dataChanged()
+        function fillAndUpdate(points) {
+            fill(points)
+            update()
         }
 
-        function fillNewPiece() {
-            var points = piece.points
+        function update() {
+            gameBoard.dataChanged()
+        }
+
+        function fill(points) {
+            //var points = piece.points
 
             for (let i = 0; i < 4; ++i) {
                 var point = points[i]
@@ -51,11 +66,11 @@ Board {
                 point.y += centerOfPiece.y
             }
 
-            model_.fill(points)
+            gameBoard.fill(points)
         }
 
-        function clearOldPiece() {
-            var points = piece.points
+        function clear(points) {
+            //var points = piece.points
 
             for (let i = 0; i < 4; ++i) {
                 var point = points[i]
@@ -63,46 +78,68 @@ Board {
                 point.y += centerOfPiece.y
             }
 
-            model_.reset(points)
+            gameBoard.reset(points)
+        }
+    }
+
+    QtObject {
+        id: pieceController
+
+        signal tryRotate()
+        signal tryGoLeft()
+        signal tryGoRight()
+        signal tryGoDown()
+
+        onTryRotate: {
+            piece.next()
+        }
+        onTryGoLeft: {
+            piece.goLeft()
+        }
+        onTryGoRight: {
+            piece.goRight()
+        }
+        onTryGoDown: {
+            piece.goDown()
         }
     }
 
     TetrixPiece {
         id: piece
         shape: TetrixPiece.LShape
-        onPointsChanged: _.updatePiece()
+        onPointsChanged: _.fillAndUpdate(piece.points)
 
         function goDown() {
-            _.clearOldPiece()
+            _.clear(piece.points)
             centerOfPiece.y += 1
-            _.updatePiece()
+            _.fillAndUpdate(piece.points)
         }
 
         function goLeft() {
-            _.clearOldPiece()
+            _.clear(piece.points)
             centerOfPiece.x -= 1
-            _.updatePiece()
+            _.fillAndUpdate(piece.points)
         }
 
         function goRight() {
-            _.clearOldPiece()
+            _.clear(piece.points)
             centerOfPiece.x += 1
-            _.updatePiece()
+            _.fillAndUpdate(piece.points)
         }
 
         function next() {
-            _.clearOldPiece()
+            _.clear(piece.points)
             piece.rotate()
         }
     }
 
     GameBoard {
-        id: model_
+        id: gameBoard
         size: boardSize
         signal dataChanged()
     }
 
-    model: model_
+    model: gameBoard
 }
 
 /*##^##

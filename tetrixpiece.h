@@ -38,17 +38,33 @@ public:
     static constexpr int TetrixPieceBlocks  = 4;
     static const QPoint coordsTable_[TetrixShapeCount][TetrixPieceBlocks];
 
+    Q_INVOKABLE QVariantMap getBoundOfNextRotation() const {
+        TetrixPiece result;
+
+        result.m_coords = m_coords;
+        result.setShape(m_shape);
+        result.rotate();
+
+        QMap<QString, QVariant> map;
+        map["minX"] = result.minX();
+        map["maxX"] = result.maxX();
+        map["minY"] = result.minY();
+        map["maxY"] = result.maxY();
+
+        return map;
+    }
+
     Q_INVOKABLE void setRandomShape(){
         auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShapeCount - 1) + 1;
         setShape(TetrixShape(randomShapeExceptNoShape));
     }
 
     Q_INVOKABLE void rotate() {
-        if (pieceShape == SquareShape || pieceShape == NoShape)
+        if (m_shape == SquareShape || m_shape == NoShape)
             return;
 
-        if (pieceShape == ZShape || pieceShape == SShape || pieceShape == LineShape)
-            if (coordsTable_[pieceShape][0] == coords[0])
+        if (m_shape == ZShape || m_shape == SShape || m_shape == LineShape)
+            if (coordsTable_[m_shape][0] == m_coords[0])
                 rotateLeft();
             else
                 rotateRight();
@@ -60,39 +76,39 @@ public:
 
     void setShape(TetrixShape shape){
 
-        if (shape != pieceShape) {
+        if (shape != m_shape) {
 
             for (int i = 0; i < TetrixPieceBlocks; i++) {
-                coords[i] = coordsTable_[shape][i];
+                m_coords[i] = coordsTable_[shape][i];
             }
 
-            pieceShape = shape;
+            m_shape = shape;
             emit shapeChanged();
         }
     }
-    TetrixShape shape() const { return pieceShape; }
+    TetrixShape shape() const { return m_shape; }
 
-    QVariantList points() const { return QVariantList{ coords[0], coords[1], coords[2], coords[3]}; }
+    QVariantList points() const { return QVariantList{ m_coords[0], m_coords[1], m_coords[2], m_coords[3]}; }
 
 
     int minX() const {
-        auto result = min_element(cbegin(coords), cend(coords),
+        auto result = min_element(cbegin(m_coords), cend(m_coords),
                                   [](const auto& e1, const auto& e2) { return e1.x() < e2.x();});
         return result->x();
     }
     int maxX() const {
-        auto result = max_element(cbegin(coords), cend(coords),
-                                  [](const auto& e1, const auto& e2) { return e1.x() > e2.x();});
+        auto result = max_element(cbegin(m_coords), cend(m_coords),
+                                  [](const auto& e1, const auto& e2) { return e1.x() < e2.x();});
         return result->x();
     }
     int minY() const {
-        auto result = min_element(cbegin(coords), cend(coords),
+        auto result = min_element(cbegin(m_coords), cend(m_coords),
                                   [](const auto& e1, const auto& e2) { return e1.y() < e2.y();});
         return result->y();
     }
     int maxY() const {
-        auto result = max_element(cbegin(coords), cend(coords),
-                                  [](const auto& e1, const auto& e2) { return e1.y() > e2.y();});
+        auto result = max_element(cbegin(m_coords), cend(m_coords),
+                                  [](const auto& e1, const auto& e2) { return e1.y() < e2.y();});
         return result->y();
     }
 
@@ -101,10 +117,10 @@ signals:
     void pointsChanged();
 
 private:
-    void setX(int index, int x) { coords[index].setX(x); }
-    void setY(int index, int y) { coords[index].setY(y); }
-    int x(int index) const { return coords[index].x(); }
-    int y(int index) const { return coords[index].y(); }
+    void setX(int index, int x) { m_coords[index].setX(x); }
+    void setY(int index, int y) { m_coords[index].setY(y); }
+    int x(int index) const { return m_coords[index].x(); }
+    int y(int index) const { return m_coords[index].y(); }
 
     void rotateLeft() {
         for (int i = 0; i < 4; ++i) {
@@ -123,8 +139,9 @@ private:
         }
     }
 
-    TetrixShape pieceShape;
-    QPoint coords[TetrixPieceBlocks];
+    TetrixShape m_shape;
+    QVector<QPoint> m_coords{TetrixPieceBlocks};
+    //    QPoint m_coords[TetrixPieceBlocks];
 };
 
 #endif // TETRIXPIECE_H

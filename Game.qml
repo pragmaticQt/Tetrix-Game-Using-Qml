@@ -91,16 +91,26 @@ Board {
         signal tryGoDown()
 
         onTryRotate: {
-            piece.next()
+            // only if piece has enough room
+            // e.g.the rotated bound is inside the board still
+            var bound = piece.getBoundOfNextRotation()
+            if (0 <= bound.minX + centerOfPiece.x
+             && bound.maxX + centerOfPiece.x < root.boardSize.width
+             && bound.maxY + centerOfPiece.y < root.boardSize.height)
+                piece.next()
         }
         onTryGoLeft: {
-            piece.goLeft()
+            if (0 < piece.minX + centerOfPiece.x)
+                piece.goLeft()
         }
         onTryGoRight: {
-            piece.goRight()
+
+            if ( piece.maxX + centerOfPiece.x < root.boardSize.width-1)
+                piece.goRight()
         }
         onTryGoDown: {
-            piece.goDown()
+            if ( piece.maxY + centerOfPiece.y < root.boardSize.height-1)
+                piece.goDown()
         }
     }
 

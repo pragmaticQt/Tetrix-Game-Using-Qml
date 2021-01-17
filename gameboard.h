@@ -23,7 +23,7 @@ public:
     void setSize(QSize size) {
 
         if (m_size != size) {
-//            qDebug() << "setSize" << size;
+            //            qDebug() << "setSize" << size;
             m_size = size;
             // resize board and fill each cell Empty
             m_board.clear();
@@ -32,7 +32,7 @@ public:
                 cell.resize(m_size.width());
                 std::fill(begin(cell), end(cell), Empty);
             }
-//            qDebug() << "m_board" << m_board;
+            //            qDebug() << "m_board" << m_board;
         }
     }
 
@@ -44,14 +44,14 @@ public:
     Q_ENUM(State)
 
     Q_INVOKABLE  void fill(QVariantList points) {
-//        qDebug() << points;
+        //        qDebug() << points;
         for ( auto &point: points ) {
             auto pt = point.toPoint();
             m_board[pt.y()][pt.x()] = Occupied;
         }
     }
     Q_INVOKABLE  void reset(QVariantList points) {
-//        qDebug() << points;
+        //        qDebug() << points;
         for ( auto &point: points ) {
             auto pt = point.toPoint();
             m_board[pt.y()][pt.x()] = Empty;
@@ -114,38 +114,41 @@ public:
         QAbstractListModel(parent)
     {}
 
-    QSize size() const { return m_size; }
+    QSize size() const { return QSize(m_board.size() > 0 ? m_board[0].size() : 0, m_board.size()); }
     void setSize(QSize size) {
-
-        if (m_size != size) {
-            //            qDebug() << "setSize" << size;
-            m_size = size;
+        if (this->size() != size) {
             // resize board and fill each cell Empty
+            auto rows = size.height();
+            auto columns = size.width();
+
             m_board.clear();
-            auto rows = m_size.height();
-            auto columns = m_size.width();
             m_board.reserve(rows);
             for (auto i = 0; i < rows; ++i) {
                 QVector<QVariant> v(columns, Empty);
                 m_board.push_back(v.toList());
             }
-            //            qDebug() << "m_board" << m_board;
         }
     }
 
-    enum State
+    enum State // for cell
     {
-        Empty = 0,
-        Occupied
+        Undefined = -1, // out of range
+        Empty = 0,      // inrange,
+        Occupied,       // piece is drawn here temperarily
+        Filled          // piece can't move across it
     };
     Q_ENUM(State)
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
-        TetrixPiece piece;
-        piece.setShape(TetrixShape::Value(shape));
-        if (piece.maxY() + originPt.y() < m_size.height() - 1)
-            return true;
-        return false;
+
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+
+        return std::none_of(std::begin(coords), std::end(coords),
+                               [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());})&&
+               std::none_of(std::begin(coords), std::end(coords),
+                               [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y()+1, pt.x());})&&
+               std::all_of(std::begin(coords), std::end(coords),
+                               [&](const auto &point){ auto pt = point + originPt;return this->getState(pt.y()+1, pt.x()) != Filled;});
     }
     //
     // cells operations
@@ -153,6 +156,10 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
             auto pt = point + originPt;
+
+            if (outOfRange(pt.y(), pt.x()))
+                continue;
+
             m_board[pt.y()][pt.x()] = Occupied;
         }
     }
@@ -161,26 +168,56 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
             auto pt = point + originPt;
+
+            if (outOfRange(pt.y(), pt.x()))
+                continue;
+
             m_board[pt.y()][pt.x()] = Empty;
         }
     }
 
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Empty); }
     //
-    Q_INVOKABLE State getState(int row, int col) const {
-        if((size_t) row >= m_board.size() || row < 0)
-            return Empty;
+    bool outRight(int row, int col) const {
+        if((size_t) col >= size().width())
+            return true;
 
-        if((size_t) col >= m_board[0].size() || col < 0)
-            return Empty;
+        return false;
+    }
+    bool outLeft(int row, int col) const {
+        if((size_t) col < 0)
+            return true;
+
+        return false;
+    }
+    bool outTop(int row, int col) const {
+        if((size_t) row <0)
+            return true;
+
+        return false;
+    }
+    bool outBottom(int row, int col) const {
+        if((size_t) row >= size().height())
+            return true;
+
+        return false;
+    }
+    bool outOfRange(int row, int col) const {
+        if(outBottom(row, col) || outTop(row, col) || outLeft(row, col) || outRight(row, col))
+            return true;
+
+        return false;
+    }
+    Q_INVOKABLE State getState(int row, int col) const {
+        if (outOfRange(row, col)) return Undefined;
 
         return State(m_board[row][col].toInt());
     }
     Q_INVOKABLE void setState(int row, int col, State state) {
 
-        if(getState(row, col) == state)
+        if(outOfRange(row, col) || state==Undefined || getState(row, col) == state)
             return;
-        //        qDebug() << "setState" << row << col << state;
+
         m_board[row][col] = state;
     }
 
@@ -204,10 +241,9 @@ public:
     }
 
 signals:
-//    dataChanged();
+    //    dataChanged();
 
 private:
     QList<QVariantList> m_board;
-    QSize m_size;
 };
 #endif // GAMEBOARD_H

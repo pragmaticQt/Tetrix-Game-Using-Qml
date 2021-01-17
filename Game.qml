@@ -63,34 +63,53 @@ Item {
         id: piece
 
         property bool dropping: false
-        shape: TetrixPiece.LShape
-
-        onPointsChanged: _.fillAndUpdate(piece.points)
-
         property point centerPt: board.startPoint
 
+        shape: TetrixPiece.LShape
+        onPointsChanged: fillAndUpdate()
+
+        // public
         function goDown() {
-            _.clear(piece.points)
-            piece.centerPt.y += 1
-            _.fillAndUpdate(piece.points)
+            clear()
+            centerPt.y += 1
+            fillAndUpdate()
         }
 
         function goLeft() {
-            _.clear(piece.points)
-            piece.centerPt.x -= 1
-            _.fillAndUpdate(piece.points)
+            clear()
+            centerPt.x -= 1
+            fillAndUpdate()
         }
 
         function goRight() {
-            _.clear(piece.points)
-            piece.centerPt.x += 1
-            _.fillAndUpdate(piece.points)
+            clear()
+            centerPt.x += 1
+            fillAndUpdate()
         }
 
         function next() {
-            _.clear(piece.points)
-            piece.rotate()
+            clear()
+            rotate()
         }
+
+        // private
+        function fillAndUpdate() {
+            fill()
+            update()
+        }
+
+        function update() {
+            listModel.dataChanged()
+        }
+
+        function fill() {
+            listModel.fillPiece(shape, centerPt)
+        }
+
+        function clear() {
+            listModel.clearPiece(shape, centerPt)
+        }
+
     }
 
     QtObject {
@@ -128,7 +147,6 @@ Item {
         }
     }
 
-
     Board2 {
         id: board
         anchors.centerIn: parent
@@ -139,30 +157,9 @@ Item {
         readonly property size size: Qt.size(6, 10)
         readonly property point startPoint: Qt.point(4, 1)
 
-        Component.onCompleted: { _.fillAndUpdate(piece.points); }
+        Component.onCompleted: { piece.pointsChanged() }
 
-        model: listModel//gameBoard
-    }
-
-    QtObject {// internal
-        id: _
-
-        function fillAndUpdate() {
-            fill()
-            update()
-        }
-
-        function update() {
-            listModel.dataChanged()
-        }
-
-        function fill() {
-            listModel.fillPiece(piece.shape, piece.centerPt)
-        }
-
-        function clear() {
-            listModel.clearPiece(piece.shape, piece.centerPt)
-        }
+        model: listModel
     }
 
     GameBoardListModel {

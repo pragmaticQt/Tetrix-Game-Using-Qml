@@ -1,12 +1,12 @@
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQml 2.12
+
 import io.qt.examples.Tetrix 1.0
 
 Item {
     id: root
 
-    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing
-    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing
     signal gameRunning()
     signal gamePaused()
     signal gameOver()
@@ -14,11 +14,21 @@ Item {
     signal scoreChanged(int score)
     signal nextPiece(int shape)
 
-    property alias logic: connections.target
+    property alias logic: conn.target
 
+    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing
+    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing
     focus: true
     Keys.onPressed: {
-        if (event.key === Qt.Key_Space) pieceController.tryRotate()
+
+        if (event.key === Qt.Key_Space) {
+            if (piece.dropping)
+                logic.pauseGame()
+            else
+                logic.resumeGame()
+        }
+
+        if (event.key === Qt.Key_Up) pieceController.tryRotate()
 
         if (event.key === Qt.Key_Left) pieceController.tryGoLeft()
 
@@ -27,13 +37,60 @@ Item {
         if (event.key === Qt.Key_Down) pieceController.tryGoDown()
 
     }
-
+    Connections {
+        id: conn
+        onStartGame: { // do init and this calls once per game
+            piece.dropping = true
+        }
+        onPauseGame: {
+            piece.dropping = false
+        }
+        onResumeGame: {
+            piece.dropping = true
+        }
+    }
     Timer {
         id: timer
         repeat: true
-        running: true
+        running: piece.dropping
         interval: 1000
-        onTriggered: pieceController.tryGoDown()
+        onTriggered: {
+            console.debug("onTriggered")
+            pieceController.tryGoDown()
+        }
+    }
+    TetrixPiece {
+        id: piece
+
+        property bool dropping: false
+        shape: TetrixPiece.LShape
+
+        onPointsChanged: _.fillAndUpdate(piece.points)
+
+        property point centerPt: board.startPoint
+
+        function goDown() {
+            _.clear(piece.points)
+            piece.centerPt.y += 1
+            _.fillAndUpdate(piece.points)
+        }
+
+        function goLeft() {
+            _.clear(piece.points)
+            piece.centerPt.x -= 1
+            _.fillAndUpdate(piece.points)
+        }
+
+        function goRight() {
+            _.clear(piece.points)
+            piece.centerPt.x += 1
+            _.fillAndUpdate(piece.points)
+        }
+
+        function next() {
+            _.clear(piece.points)
+            piece.rotate()
+        }
     }
 
     QtObject {
@@ -65,24 +122,12 @@ Item {
         onTryGoDown: {
             if ( listModel.canGoDown(piece.shape, piece.centerPt) )
                 piece.goDown()
+            else {
+                piece.dropping = false
+            }
         }
     }
-    Connections {
-        id: connections
 
-        function onStartGame() {
-            //                centerOfPiece = startPoint
-        }
-
-        function onStopGame(){
-        }
-
-        function onPauseGame() {
-        }
-
-        function onEesumeGame() {
-        }
-    }
 
     Board2 {
         id: board
@@ -124,37 +169,6 @@ Item {
         id: listModel
         size: board.size
         signal dataChanged()
-    }
-    TetrixPiece {
-        id: piece
-        shape: TetrixPiece.LShape
-
-        onPointsChanged: _.fillAndUpdate(piece.points)
-
-        property point centerPt: board.startPoint
-
-        function goDown() {
-            _.clear(piece.points)
-            piece.centerPt.y += 1
-            _.fillAndUpdate(piece.points)
-        }
-
-        function goLeft() {
-            _.clear(piece.points)
-            piece.centerPt.x -= 1
-            _.fillAndUpdate(piece.points)
-        }
-
-        function goRight() {
-            _.clear(piece.points)
-            piece.centerPt.x += 1
-            _.fillAndUpdate(piece.points)
-        }
-
-        function next() {
-            _.clear(piece.points)
-            piece.rotate()
-        }
     }
 
 }

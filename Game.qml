@@ -28,6 +28,14 @@ Item {
 
     }
 
+    Timer {
+        id: timer
+        repeat: true
+        running: true
+        interval: 1000
+        onTriggered: pieceController.tryGoDown()
+    }
+
     QtObject {
         id: pieceController
 

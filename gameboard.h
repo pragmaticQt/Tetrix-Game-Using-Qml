@@ -139,7 +139,16 @@ public:
         Occupied
     };
     Q_ENUM(State)
-
+    // piece movement detection
+    Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
+        TetrixPiece piece;
+        piece.setShape(TetrixShape::Value(shape));
+        if (piece.maxY() + originPt.y() < m_size.height() - 1)
+            return true;
+        return false;
+    }
+    //
+    // cells operations
     Q_INVOKABLE  void fillPiece(int shape, const QPoint& originPt){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
@@ -157,6 +166,7 @@ public:
     }
 
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Empty); }
+    //
     Q_INVOKABLE State getState(int row, int col) const {
         if((size_t) row >= m_board.size() || row < 0)
             return Empty;

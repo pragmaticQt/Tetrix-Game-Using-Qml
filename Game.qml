@@ -48,22 +48,22 @@ Item {
             // only if piece has enough room
             // e.g.the rotated bound is inside the board still
             var bound = piece.getBoundOfNextRotation()
-            if (0 <= bound.minX + piece.centerOfPiece.x
-                    && bound.maxX + piece.centerOfPiece.x < board.size.width
-                    && bound.maxY + piece.centerOfPiece.y < board.size.height)
+            if (0 <= bound.minX + piece.centerPt.x
+                    && bound.maxX + piece.centerPt.x < board.size.width
+                    && bound.maxY + piece.centerPt.y < board.size.height)
                 piece.next()
         }
         onTryGoLeft: {
-            if (0 < piece.minX + piece.centerOfPiece.x)
+            if (0 < piece.minX + piece.centerPt.x)
                 piece.goLeft()
         }
         onTryGoRight: {
 
-            if ( piece.maxX + piece.centerOfPiece.x < board.size.width-1)
+            if ( piece.maxX + piece.centerPt.x < board.size.width-1)
                 piece.goRight()
         }
         onTryGoDown: {
-            if ( piece.maxY + piece.centerOfPiece.y < board.size.height-1)
+            if ( listModel.canGoDown(piece.shape, piece.centerPt) )
                 piece.goDown()
         }
     }
@@ -112,11 +112,11 @@ Item {
         }
 
         function fill() {
-            listModel.fillPiece(piece.shape, piece.centerOfPiece)
+            listModel.fillPiece(piece.shape, piece.centerPt)
         }
 
         function clear() {
-            listModel.clearPiece(piece.shape, piece.centerOfPiece)
+            listModel.clearPiece(piece.shape, piece.centerPt)
         }
     }
 
@@ -131,23 +131,23 @@ Item {
 
         onPointsChanged: _.fillAndUpdate(piece.points)
 
-        property point centerOfPiece: board.startPoint
+        property point centerPt: board.startPoint
 
         function goDown() {
             _.clear(piece.points)
-            piece.centerOfPiece.y += 1
+            piece.centerPt.y += 1
             _.fillAndUpdate(piece.points)
         }
 
         function goLeft() {
             _.clear(piece.points)
-            piece.centerOfPiece.x -= 1
+            piece.centerPt.x -= 1
             _.fillAndUpdate(piece.points)
         }
 
         function goRight() {
             _.clear(piece.points)
-            piece.centerOfPiece.x += 1
+            piece.centerPt.x += 1
             _.fillAndUpdate(piece.points)
         }
 

@@ -192,6 +192,7 @@ public:
     }
 
 signals:
+//    dataChanged();
 
 private:
     QList<QVariantList> m_board;

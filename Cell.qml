@@ -22,11 +22,11 @@ Rectangle {
     }
 
     function getCorrectColor() {
-        var status = target.data(target.index(row, column))
+        var status = target.getState(row, column)//target.data(target.index(row, column))
         switch(status+GameBoard.Empty) {
         default:
         case GameBoard.Empty:
-            return "honeydew"
+            return "red"
         case GameBoard.Occupied:
             return "black"
         }

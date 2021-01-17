@@ -5,6 +5,8 @@ import io.qt.examples.Tetrix 1.0
 Item {
     id: root
 
+    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing
+    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing
     signal gameRunning()
     signal gamePaused()
     signal gameOver()
@@ -25,7 +27,6 @@ Item {
         if (event.key === Qt.Key_Down) pieceController.tryGoDown()
 
     }
-    anchors.fill: parent
 
     QtObject {
         id: pieceController
@@ -37,12 +38,15 @@ Item {
 
     }
 
-    Board {
+    Board2 {
         id: board
         anchors.centerIn: parent
+        anchors.fill: parent
+        cellSize: 40
+        spacing: 1
 
         property point centerOfPiece: startPoint
-        readonly property size size: Qt.size(8, 8)
+        readonly property size size: Qt.size(6, 10)
         readonly property point startPoint: Qt.point(4, 1)
 
         Connections {
@@ -73,7 +77,7 @@ Item {
             }
 
             function update() {
-                gameBoard.dataChanged()
+                listModel.dataChanged()
             }
 
             function fill(points) {
@@ -85,7 +89,7 @@ Item {
                     point.y += board.centerOfPiece.y
                 }
 
-                gameBoard.fill(points)
+                listModel.fill(points)
             }
 
             function clear(points) {
@@ -97,7 +101,7 @@ Item {
                     point.y += board.centerOfPiece.y
                 }
 
-                gameBoard.reset(points)
+                listModel.reset(points)
             }
         }
 
@@ -157,13 +161,17 @@ Item {
             }
         }
 
-        GameBoard {
-            id: gameBoard
+        //        GameBoard {
+        //            id: gameBoard
+        //            size: board.size
+        //            signal dataChanged()
+        //        }
+        GameBoardListModel {
+            id: listModel
             size: board.size
             signal dataChanged()
         }
-
-        model: gameBoard
+        model: listModel//gameBoard
     }
 }
 /*##^##

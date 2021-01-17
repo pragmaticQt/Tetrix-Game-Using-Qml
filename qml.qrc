@@ -7,6 +7,5 @@
         <file>GameLogic.qml</file>
         <file>BoardRow.qml</file>
         <file>Board2.qml</file>
-        <file>Cell2.qml</file>
     </qresource>
 </RCC>

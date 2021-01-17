@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<TetrixPiece>("io.qt.examples.Tetrix", 1,0, "TetrixPiece");
     qmlRegisterType<GameBoard>("io.qt.examples.Tetrix", 1,0, "GameBoard");
+    qmlRegisterType<GameBoardListModel>("io.qt.examples.Tetrix", 1,0, "GameBoardListModel");
 
 //    GameBoard gameBoard;
 //    gameBoard.setState(0, 0, GameBoard::Occupied);
@@ -24,10 +25,10 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    GameBoardListModel listModel;
-    listModel.setSize(QSize(5, 5));
-    QQmlContext *ctxt = engine.rootContext();
-    ctxt->setContextProperty("listModel", &listModel);
+//    GameBoardListModel listModel;
+////    listModel.setSize(QSize(5, 5));
+//    QQmlContext *ctxt = engine.rootContext();
+//    ctxt->setContextProperty("listModel", &listModel);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

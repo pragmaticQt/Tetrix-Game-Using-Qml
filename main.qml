@@ -13,16 +13,14 @@ Window {
 
     title: qsTr("Hello Tetrix")
 
-    //    Game {
-    //        logic: gameLogic
-    //    }
-
-    //    GameLogic {
-    //        id: gameLogic
-    //    }
-
-    Board2 { // its size automatically determined by elements
-        anchors.fill: parent
-        model: listModel
+    Game {
+        logic: gameLogic
+        anchors.centerIn: parent
     }
+
+    GameLogic {
+        id: gameLogic
+    }
+
+
 }

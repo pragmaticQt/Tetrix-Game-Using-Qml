@@ -24,8 +24,10 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-//    QQmlContext *ctxt = engine.rootContext();
-//    ctxt->setContextProperty("myGameBoard", &gameBoard);
+    GameBoardListModel listModel;
+    listModel.setSize(QSize(5, 5));
+    QQmlContext *ctxt = engine.rootContext();
+    ctxt->setContextProperty("listModel", &listModel);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

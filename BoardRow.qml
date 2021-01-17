@@ -4,17 +4,21 @@ import io.qt.examples.Tetrix 1.0
 
 
 Row {
+    id: root
     property var values
-    spacing: 10
+    property int row: 0
+
+    spacing: ListView.view.spacing
+
     Repeater {
         id: repeater
         model: values
-        Cell2 {
-            color: values[index]===(0+GameBoard.Occupied) ? "black" : "honeydew"
-            size: 50
+        delegate: Cell {
+            size: root.ListView.view.cellSize
+            row: root.row
             column: index
+            target: root.ListView.view.model
         }
-
     }
 }
 

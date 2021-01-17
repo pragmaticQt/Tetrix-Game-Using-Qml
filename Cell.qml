@@ -16,7 +16,6 @@ Rectangle {
 
     Connections {
         id: connection
-        //        target: myGameBoard
         onDataChanged: {
             cell.color = cell.getCorrectColor()
         }

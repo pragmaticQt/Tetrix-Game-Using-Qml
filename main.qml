@@ -13,21 +13,16 @@ Window {
 
     title: qsTr("Hello Tetrix")
 
-    Game {
-        logic: gameLogic
-    }
-
-    GameLogic {
-        id: gameLogic
-    }
-    //    property var elements: [
-    //        [GameBoard.Empty, GameBoard.Occupied, GameBoard.Empty, GameBoard.Empty]
-    //        ,[GameBoard.Occupied, GameBoard.Occupied, GameBoard.Occupied, GameBoard.Empty]
-    //        ,[GameBoard.Empty, GameBoard.Empty, GameBoard.Empty, GameBoard.Empty]
-    //    ]
-
-    //    Board2 { // its size automatically determined by elements
-    //        anchors.fill: parent
-    //        elements: root.elements
+    //    Game {
+    //        logic: gameLogic
     //    }
+
+    //    GameLogic {
+    //        id: gameLogic
+    //    }
+
+    Board2 { // its size automatically determined by elements
+        anchors.fill: parent
+        model: listModel
+    }
 }

@@ -1,12 +1,17 @@
 import QtQuick 2.0
 
-Column {
-    property var elements
+ListView {
+    id: root
+
+    property int cellSize: 100
     spacing: 10
-    Repeater {
-        model: elements
-        BoardRow {
-            values: elements[index]
+    interactive: false
+
+    delegate: BoardRow {
+        row: index
+        values: {
+            var result = root.model.getRow(index)
+            return result
         }
     }
 }

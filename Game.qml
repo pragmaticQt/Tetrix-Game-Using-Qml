@@ -102,8 +102,8 @@ Item {
     QtObject {// internal
         id: _
 
-        function fillAndUpdate(points) {
-            fill(points)
+        function fillAndUpdate() {
+            fill()
             update()
         }
 
@@ -111,28 +111,12 @@ Item {
             listModel.dataChanged()
         }
 
-        function fill(points) {
-            //var points = piece.points
-
-            for (let i = 0; i < 4; ++i) {
-                var point = points[i]
-                point.x += piece.centerOfPiece.x
-                point.y += piece.centerOfPiece.y
-            }
-
-            listModel.fill(points)
+        function fill() {
+            listModel.fillPiece(piece.shape, piece.centerOfPiece)
         }
 
-        function clear(points) {
-            //var points = piece.points
-
-            for (let i = 0; i < 4; ++i) {
-                var point = points[i]
-                point.x += piece.centerOfPiece.x
-                point.y += piece.centerOfPiece.y
-            }
-
-            listModel.reset(points)
+        function clear() {
+            listModel.clearPiece(piece.shape, piece.centerOfPiece)
         }
     }
 
@@ -144,8 +128,11 @@ Item {
     TetrixPiece {
         id: piece
         shape: TetrixPiece.LShape
+
         onPointsChanged: _.fillAndUpdate(piece.points)
+
         property point centerOfPiece: board.startPoint
+
         function goDown() {
             _.clear(piece.points)
             piece.centerOfPiece.y += 1

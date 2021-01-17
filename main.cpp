@@ -10,25 +10,25 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-//    GameBoard board;
-//    board.setSize(QSize(2, 3));
+    //    GameBoard board;
+    //    board.setSize(QSize(2, 3));
 
     qmlRegisterType<TetrixPiece>("io.qt.examples.Tetrix", 1,0, "TetrixPiece");
     qmlRegisterType<GameBoard>("io.qt.examples.Tetrix", 1,0, "GameBoard");
     qmlRegisterType<GameBoardListModel>("io.qt.examples.Tetrix", 1,0, "GameBoardListModel");
-
-//    GameBoard gameBoard;
-//    gameBoard.setState(0, 0, GameBoard::Occupied);
-//    gameBoard.setState(0, 1, GameBoard::Occupied);
-//    gameBoard.setState(1, 1, GameBoard::Occupied);
-//    gameBoard.setState(1, 2, GameBoard::Occupied);
+    qmlRegisterUncreatableType<TetrixShape>("io.qt.examples.Tetrix", 1, 0, "TetrixShape", "Not creatable as it is an enum type");
+    //    GameBoard gameBoard;
+    //    gameBoard.setState(0, 0, GameBoard::Occupied);
+    //    gameBoard.setState(0, 1, GameBoard::Occupied);
+    //    gameBoard.setState(1, 1, GameBoard::Occupied);
+    //    gameBoard.setState(1, 2, GameBoard::Occupied);
 
     QQmlApplicationEngine engine;
 
-//    GameBoardListModel listModel;
-////    listModel.setSize(QSize(5, 5));
-//    QQmlContext *ctxt = engine.rootContext();
-//    ctxt->setContextProperty("listModel", &listModel);
+    //    GameBoardListModel listModel;
+    ////    listModel.setSize(QSize(5, 5));
+    //    QQmlContext *ctxt = engine.rootContext();
+    //    ctxt->setContextProperty("listModel", &listModel);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

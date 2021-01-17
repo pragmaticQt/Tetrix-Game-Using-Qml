@@ -11,10 +11,45 @@ using std::max_element;
 using std::cbegin;
 using std::cend;
 //! [0]
+//!
+
+class TetrixShape
+{
+    Q_GADGET
+public:
+    enum Value { NoShape = 0,
+                 SquareShape,
+
+                 ZShape,
+                 SShape,
+                 LineShape,
+
+                 ZShape1,
+                 SShape1,
+                 LineShape1,
+
+                 TShape,
+                 LShape,
+                 MirroredLShape,
+                 TShape1,
+                 LShape1,
+                 MirroredLShape1,
+                 TShape2,
+                 LShape2,
+                 MirroredLShape2,
+                 TShape3,
+                 LShape3,
+                 MirroredLShape3,
+                 Count
+    };
+
+    Q_ENUM(Value)
+};
+
 class TetrixPiece : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(TetrixShape shape READ shape WRITE setShape NOTIFY shapeChanged)
+    Q_PROPERTY(TetrixShape::Value shape READ shape WRITE setShape NOTIFY shapeChanged)
     Q_PROPERTY(QVariantList points READ points NOTIFY pointsChanged)
     Q_PROPERTY(int minX READ minX)
     Q_PROPERTY(int maxX READ maxX)
@@ -24,19 +59,10 @@ class TetrixPiece : public QObject
 public:
     TetrixPiece(QObject *parent = nullptr): QObject(parent) { setShape(TetrixShape::NoShape); }
 
-    enum TetrixShape { NoShape = 0,
-                       ZShape,
-                       SShape,
-                       LineShape,
-                       TShape,
-                       SquareShape,
-                       LShape,
-                       MirroredLShape };
-    Q_ENUM(TetrixShape)
 
-    static constexpr int TetrixShapeCount  = 8;
+
     static constexpr int TetrixPieceBlocks  = 4;
-    static const QPoint CoordinatesTable[TetrixShapeCount][TetrixPieceBlocks];
+    static const QPoint CoordinatesTable[TetrixShape::Count][TetrixPieceBlocks];
 
     Q_INVOKABLE QVariantMap getBoundOfNextRotation() const {
         TetrixPiece result;
@@ -55,26 +81,23 @@ public:
     }
 
     Q_INVOKABLE void setRandomShape(){
-        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShapeCount - 1) + 1;
-        setShape(TetrixShape(randomShapeExceptNoShape));
+        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
+        setShape(TetrixShape::Value(randomShapeExceptNoShape));
     }
 
     Q_INVOKABLE void rotate() {
-        if (m_shape == SquareShape || m_shape == NoShape)
+        if (m_shape == TetrixShape::SquareShape || m_shape == TetrixShape::NoShape)
             return;
 
-        if (m_shape == ZShape || m_shape == SShape || m_shape == LineShape)
-            if (CoordinatesTable[m_shape][0] == m_coords[0])
-                rotateLeft();
-            else
-                rotateRight();
-        else
-            rotateLeft();
+        if (TetrixShape::ZShape <= m_shape && m_shape < TetrixShape::TShape)
+            setShape(TetrixShape::Value(TetrixShape::ZShape + int((m_shape - TetrixShape::ZShape) + (TetrixShape::ZShape1 - TetrixShape::ZShape)) % int(TetrixShape::TShape - TetrixShape::ZShape)));
+        else if (TetrixShape::TShape <= m_shape && m_shape < TetrixShape::TetrixShape::Count)
+            setShape(TetrixShape::Value(TetrixShape::TShape + int((m_shape - TetrixShape::TShape) + (TetrixShape::TShape1 - TetrixShape::TShape)) % int(TetrixShape::TetrixShape::Count - TetrixShape::TShape)));
 
         emit pointsChanged();
     }
 
-    void setShape(TetrixShape shape){
+    void setShape(const TetrixShape::Value& shape){
 
         if (shape != m_shape) {
 
@@ -86,7 +109,7 @@ public:
             emit shapeChanged();
         }
     }
-    TetrixShape shape() const { return m_shape; }
+    TetrixShape::Value shape() const { return m_shape; }
 
     QVariantList points() const { return QVariantList{ m_coords[0], m_coords[1], m_coords[2], m_coords[3]}; }
 
@@ -122,24 +145,24 @@ private:
     int x(int index) const { return m_coords[index].x(); }
     int y(int index) const { return m_coords[index].y(); }
 
-    void rotateLeft() {
-        for (int i = 0; i < 4; ++i) {
-            auto tmpY = y(i);
-            auto tmpX = -x(i);
-            setX(i, tmpY);
-            setY(i, tmpX);
-        }
-    }
-    void rotateRight() {
-        for (int i = 0; i < 4; ++i) {
-            auto tmpY = -y(i);
-            auto tmpX = x(i);
-            setX(i, tmpY);
-            setY(i, tmpX);
-        }
-    }
+    //    void rotateLeft() {
+    //        for (int i = 0; i < 4; ++i) {
+    //            auto tmpY = y(i);
+    //            auto tmpX = -x(i);
+    //            setX(i, tmpY);
+    //            setY(i, tmpX);
+    //        }
+    //    }
+    //    void rotateRight() {
+    //        for (int i = 0; i < 4; ++i) {
+    //            auto tmpY = -y(i);
+    //            auto tmpX = x(i);
+    //            setX(i, tmpY);
+    //            setY(i, tmpX);
+    //        }
+    //    }
 
-    TetrixShape m_shape;
+    TetrixShape::Value m_shape;
     QVector<QPoint> m_coords{TetrixPieceBlocks};
     //    QPoint m_coords[TetrixPieceBlocks];
 };

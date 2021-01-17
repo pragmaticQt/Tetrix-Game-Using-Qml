@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <vector>
 #include <algorithm>
-
+#include "tetrixpiece.h"
 
 class GameBoard : public QAbstractTableModel
 {
@@ -140,20 +140,22 @@ public:
     };
     Q_ENUM(State)
 
-    Q_INVOKABLE  void fill(QVariantList points) {
-        //        qDebug() << points;
-        for ( auto &point: points ) {
-            auto pt = point.toPoint();
+    Q_INVOKABLE  void fillPiece(int shape, const QPoint& originPt){
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+        for ( auto &point: coords ) {
+            auto pt = point + originPt;
             m_board[pt.y()][pt.x()] = Occupied;
         }
     }
-    Q_INVOKABLE  void reset(QVariantList points) {
-        //        qDebug() << points;
-        for ( auto &point: points ) {
-            auto pt = point.toPoint();
+
+    Q_INVOKABLE  void clearPiece(int shape, const QPoint& originPt){
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+        for ( auto &point: coords ) {
+            auto pt = point + originPt;
             m_board[pt.y()][pt.x()] = Empty;
         }
     }
+
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Empty); }
     Q_INVOKABLE State getState(int row, int col) const {
         if((size_t) row >= m_board.size() || row < 0)

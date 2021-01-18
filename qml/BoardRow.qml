@@ -15,8 +15,7 @@ Row {
         model: values
         delegate: BoardCell {
             size: root.ListView.view.cellSize
-            row: root.row
-            column: index
+            pt: Qt.point(index, root.row)
             target: root.ListView.view.model
         }
     }

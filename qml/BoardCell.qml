@@ -5,8 +5,7 @@ Rectangle {
     id: cell
 
     property alias target: connection.target
-    property int row: 0
-    property int column: 0
+    property point pt: Qt.point(0, 0)
     property int size: 10
 
     width: size
@@ -22,12 +21,13 @@ Rectangle {
     }
 
     function getCorrectColor() {
-        var status = target.getState(row, column)//target.data(target.index(row, column))
-        switch(status+GameBoard.Empty) {
+        var status = target.getState(pt)
+        switch(status+Cell.Empty) {
         default:
-        case GameBoard.Empty:
+        case Cell.Empty:
             return "red"
-        case GameBoard.Occupied:
+        case Cell.Occupied:
+        case Cell.Filled:
             return "black"
         }
     }

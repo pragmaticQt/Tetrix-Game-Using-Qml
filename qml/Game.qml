@@ -62,10 +62,25 @@ Item {
     TetrixPiece {
         id: piece
 
+        property bool landed: false
         property bool dropping: false
         property point centerPt: board.startPoint
 
-//        Component.onCompleted: setRandomShape()
+        onLandedChanged: {
+            if (landed) {
+                listModel.landPiece(piece.shape, piece.centerPt)
+
+                if (listModel.getState(piece.centerPt))
+
+                centerPt = board.startPoint
+                setRandomShape()
+
+                landed = false
+                dropping = true
+            }
+        }
+
+        //        Component.onCompleted: setRandomShape()
         shape: TetrixPiece.LShape
         onShapeChanged: fillAndUpdate()
         // public
@@ -87,6 +102,7 @@ Item {
                 goDown()
             else {
                 dropping = false
+                landed = true
             }
         }
         // private

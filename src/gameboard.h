@@ -103,6 +103,17 @@
 //    std::vector<std::vector<State>> m_board;
 //    QSize m_size;
 //};
+class Cell {
+    Q_GADGET
+public:
+    enum Value {
+        Undefined = -1, // out of range
+        Empty = 0,      // inrange,
+        Occupied,       // piece is drawn here temperarily
+        Filled          // piece can't move across it
+    };
+    Q_ENUM(Value)
+};
 
 class GameBoardListModel : public QAbstractListModel
 {
@@ -145,7 +156,7 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());});
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);});
     }
     // never go up
     Q_INVOKABLE bool canGoUp(int shape, const QPoint& originPt) const {
@@ -156,14 +167,14 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x()-1);});
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()-1, pt.y()});});
     }
     Q_INVOKABLE bool canGoRight(int shape, const QPoint& originPt) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x()+1);});
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()+1, pt.y()});});
     }
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
@@ -171,20 +182,32 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());})&&
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y()+1, pt.x());})&&
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
                std::all_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState(pt.y()+1, pt.x()) != Filled;});
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) != Filled;});
     }
     //
     // cells operations
+    Q_INVOKABLE  void landPiece(int shape, const QPoint& originPt){
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+        for ( auto &point: coords ) {
+            auto pt = point + originPt;
+
+            if (outOfRange(pt))
+                continue;
+
+            m_board[pt.y()][pt.x()] = Filled;
+        }
+    }
+
     Q_INVOKABLE  void fillPiece(int shape, const QPoint& originPt){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
             auto pt = point + originPt;
 
-            if (outOfRange(pt.y(), pt.x()))
+            if (outOfRange(pt))
                 continue;
 
             m_board[pt.y()][pt.x()] = Occupied;
@@ -196,7 +219,7 @@ public:
         for ( auto &point: coords ) {
             auto pt = point + originPt;
 
-            if (outOfRange(pt.y(), pt.x()))
+            if (outOfRange(pt))
                 continue;
 
             m_board[pt.y()][pt.x()] = Empty;
@@ -205,47 +228,48 @@ public:
 
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Empty); }
     //
-    bool outRight(int row, int col) const {
-        if((size_t) col >= size().width())
+    bool outRight(const QPoint& pt) const {
+        if((size_t) pt.x() >= size().width())
             return true;
 
         return false;
     }
-    bool outLeft(int row, int col) const {
-        if((size_t) col < 0)
+    bool outLeft(const QPoint& pt) const {
+        if((size_t) pt.x() < 0)
             return true;
 
         return false;
     }
-    bool outTop(int row, int col) const {
-        if((size_t) row <0)
+    bool outTop(const QPoint& pt) const {
+        if((size_t) pt.y() <0)
             return true;
 
         return false;
     }
-    bool outBottom(int row, int col) const {
-        if((size_t) row >= size().height())
+    bool outBottom(const QPoint& pt) const {
+        if((size_t) pt.y() >= size().height())
             return true;
 
         return false;
     }
-    bool outOfRange(int row, int col) const {
-        if(outBottom(row, col) || outTop(row, col) || outLeft(row, col) || outRight(row, col))
+    bool outOfRange(const QPoint& pt) const {
+        if(outBottom(pt) || outTop(pt) || outLeft(pt) || outRight(pt))
             return true;
 
         return false;
     }
-    Q_INVOKABLE State getState(int row, int col) const {
-        if (outOfRange(row, col)) return Undefined;
+    Q_INVOKABLE State getState(const QPoint& pt) const {
 
-        return State(m_board[row][col].toInt());
+        if (outOfRange(pt)) return Undefined;
+
+        return State(m_board[pt.y()][pt.x()].toInt());
     }
-    Q_INVOKABLE void setState(int row, int col, State state) {
+    Q_INVOKABLE void setState(const QPoint& pt, State state) {
 
-        if(outOfRange(row, col) || state==Undefined || getState(row, col) == state)
+        if(outOfRange(pt) || state==Undefined || getState(pt) == state)
             return;
 
-        m_board[row][col] = state;
+        m_board[pt.y()][pt.x()] = state;
     }
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const {

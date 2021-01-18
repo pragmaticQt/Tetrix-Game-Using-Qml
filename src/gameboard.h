@@ -147,6 +147,24 @@ public:
         return std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());});
     }
+    // never go up
+    Q_INVOKABLE bool canGoUp(int shape, const QPoint& originPt) const {
+        return false;
+    }
+    Q_INVOKABLE bool canGoLeft(int shape, const QPoint& originPt) const {
+
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+
+        return std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x()-1);});
+    }
+    Q_INVOKABLE bool canGoRight(int shape, const QPoint& originPt) const {
+
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+
+        return std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x()+1);});
+    }
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
 

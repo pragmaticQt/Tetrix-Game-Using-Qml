@@ -1,12 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>qml/Board.qml</file>
         <file>qml/Board2.qml</file>
         <file>qml/BoardRow.qml</file>
-        <file>qml/Cell.qml</file>
+        <file>qml/BoardCell.qml</file>
         <file>qml/Game.qml</file>
         <file>qml/GameLogic.qml</file>
-        <file>qml/GridBoard.qml</file>
     </qresource>
 </RCC>

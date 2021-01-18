@@ -125,12 +125,12 @@ Item {
                 piece.next()
         }
         onTryGoLeft: {
-            if (0 < piece.minX + piece.centerPt.x)
+            if (listModel.canGoLeft(piece.shape, piece.centerPt))
                 piece.goLeft()
         }
         onTryGoRight: {
 
-            if ( piece.maxX + piece.centerPt.x < board.size.width-1)
+            if (listModel.canGoRight(piece.shape, piece.centerPt))
                 piece.goRight()
         }
         onTryGoDown: {

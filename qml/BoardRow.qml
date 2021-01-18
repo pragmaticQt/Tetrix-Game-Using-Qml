@@ -13,7 +13,7 @@ Row {
     Repeater {
         id: repeater
         model: values
-        delegate: Cell {
+        delegate: BoardCell {
             size: root.ListView.view.cellSize
             row: root.row
             column: index

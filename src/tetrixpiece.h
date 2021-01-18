@@ -50,51 +50,40 @@ class TetrixPiece : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(TetrixShape::Value shape READ shape WRITE setShape NOTIFY shapeChanged)
-    Q_PROPERTY(QVariantList points READ points NOTIFY pointsChanged)
+    Q_PROPERTY(QVariantList points READ points/* NOTIFY pointsChanged*/)
     Q_PROPERTY(int minX READ minX)
     Q_PROPERTY(int maxX READ maxX)
     Q_PROPERTY(int minY READ minY)
     Q_PROPERTY(int maxY READ maxY)
 
 public:
-    TetrixPiece(QObject *parent = nullptr): QObject(parent) { setShape(TetrixShape::NoShape); }
-
-
+    TetrixPiece(TetrixShape::Value shape = TetrixShape::NoShape, QObject *parent = nullptr):
+        QObject(parent), m_shape(shape) { }
 
     static constexpr int TetrixPieceBlocks  = 4;
     static const QPoint CoordinatesTable[TetrixShape::Count][TetrixPieceBlocks];
-
-    Q_INVOKABLE QVariantMap getBoundOfNextRotation() const {
-        TetrixPiece result;
-
-        result.m_coords = m_coords;
-        result.setShape(m_shape);
-        result.rotate();
-
-        QMap<QString, QVariant> map;
-        map["minX"] = result.minX();
-        map["maxX"] = result.maxX();
-        map["minY"] = result.minY();
-        map["maxY"] = result.maxY();
-
-        return map;
-    }
 
     Q_INVOKABLE void setRandomShape(){
         auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
         setShape(TetrixShape::Value(randomShapeExceptNoShape));
     }
 
+    static TetrixShape::Value nextShapeIfRotated(TetrixShape::Value shape) {
+        if (TetrixShape::ZShape <= shape && shape < TetrixShape::TShape)
+            return (TetrixShape::Value(TetrixShape::ZShape + int((shape - TetrixShape::ZShape) + (TetrixShape::ZShape1 - TetrixShape::ZShape)) % int(TetrixShape::TShape - TetrixShape::ZShape)));
+        else if (TetrixShape::TShape <= shape && shape < TetrixShape::TetrixShape::Count)
+            return (TetrixShape::Value(TetrixShape::TShape + int((shape - TetrixShape::TShape) + (TetrixShape::TShape1 - TetrixShape::TShape)) % int(TetrixShape::TetrixShape::Count - TetrixShape::TShape)));
+        else//if (m_shape == TetrixShape::SquareShape || m_shape == TetrixShape::NoShape)
+            return shape;
+    }
+
     Q_INVOKABLE void rotate() {
         if (m_shape == TetrixShape::SquareShape || m_shape == TetrixShape::NoShape)
             return;
 
-        if (TetrixShape::ZShape <= m_shape && m_shape < TetrixShape::TShape)
-            setShape(TetrixShape::Value(TetrixShape::ZShape + int((m_shape - TetrixShape::ZShape) + (TetrixShape::ZShape1 - TetrixShape::ZShape)) % int(TetrixShape::TShape - TetrixShape::ZShape)));
-        else if (TetrixShape::TShape <= m_shape && m_shape < TetrixShape::TetrixShape::Count)
-            setShape(TetrixShape::Value(TetrixShape::TShape + int((m_shape - TetrixShape::TShape) + (TetrixShape::TShape1 - TetrixShape::TShape)) % int(TetrixShape::TetrixShape::Count - TetrixShape::TShape)));
+        setShape(nextShapeIfRotated(m_shape));
 
-        emit pointsChanged();
+        emit shapeChanged();
     }
 
     void setShape(const TetrixShape::Value& shape){
@@ -112,7 +101,6 @@ public:
     TetrixShape::Value shape() const { return m_shape; }
 
     QVariantList points() const { return QVariantList{ m_coords[0], m_coords[1], m_coords[2], m_coords[3]}; }
-
 
     int minX() const {
         auto result = min_element(cbegin(m_coords), cend(m_coords),
@@ -137,7 +125,7 @@ public:
 
 signals:
     void shapeChanged();
-    void pointsChanged();
+//    void pointsChanged();
 
 private:
     void setX(int index, int x) { m_coords[index].setX(x); }
@@ -145,26 +133,8 @@ private:
     int x(int index) const { return m_coords[index].x(); }
     int y(int index) const { return m_coords[index].y(); }
 
-    //    void rotateLeft() {
-    //        for (int i = 0; i < 4; ++i) {
-    //            auto tmpY = y(i);
-    //            auto tmpX = -x(i);
-    //            setX(i, tmpY);
-    //            setY(i, tmpX);
-    //        }
-    //    }
-    //    void rotateRight() {
-    //        for (int i = 0; i < 4; ++i) {
-    //            auto tmpY = -y(i);
-    //            auto tmpX = x(i);
-    //            setX(i, tmpY);
-    //            setY(i, tmpX);
-    //        }
-    //    }
-
-    TetrixShape::Value m_shape;
-    QVector<QPoint> m_coords{TetrixPieceBlocks};
-    //    QPoint m_coords[TetrixPieceBlocks];
+    TetrixShape::Value m_shape = TetrixShape::NoShape;
+    QVector<QPoint> m_coords {TetrixPieceBlocks};
 };
 
 #endif // TETRIXPIECE_H

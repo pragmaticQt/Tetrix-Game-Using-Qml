@@ -66,7 +66,7 @@ Item {
         property point centerPt: board.startPoint
 
         shape: TetrixPiece.LShape
-        onPointsChanged: fillAndUpdate()
+        onShapeChanged: fillAndUpdate()
 
         // public
         function goDown() {
@@ -121,12 +121,7 @@ Item {
         signal tryGoDown()
 
         onTryRotate: {
-            // only if piece has enough room
-            // e.g.the rotated bound is inside the board still
-            var bound = piece.getBoundOfNextRotation()
-            if (0 <= bound.minX + piece.centerPt.x
-                    && bound.maxX + piece.centerPt.x < board.size.width
-                    && bound.maxY + piece.centerPt.y < board.size.height)
+            if (listModel.canRotate(piece.shape, piece.centerPt))
                 piece.next()
         }
         onTryGoLeft: {
@@ -157,7 +152,7 @@ Item {
         readonly property size size: Qt.size(6, 10)
         readonly property point startPoint: Qt.point(4, 1)
 
-        Component.onCompleted: { piece.pointsChanged() }
+        Component.onCompleted: { piece.shapeChanged() }
 
         model: listModel
     }

@@ -138,17 +138,26 @@ public:
         Filled          // piece can't move across it
     };
     Q_ENUM(State)
+
+    Q_INVOKABLE bool canRotate(int shape, const QPoint& originPt) const {
+
+        auto nextShape = TetrixPiece::nextShapeIfRotated((TetrixShape::Value)shape);
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
+
+        return std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());});
+    }
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                               [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());})&&
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y(), pt.x());})&&
                std::none_of(std::begin(coords), std::end(coords),
-                               [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y()+1, pt.x());})&&
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt.y()+1, pt.x());})&&
                std::all_of(std::begin(coords), std::end(coords),
-                               [&](const auto &point){ auto pt = point + originPt;return this->getState(pt.y()+1, pt.x()) != Filled;});
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState(pt.y()+1, pt.x()) != Filled;});
     }
     //
     // cells operations

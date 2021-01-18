@@ -11,6 +11,8 @@ Item {
     signal gamePaused()
     signal gameOver()
 
+    onGameOver: console.debug("game over")
+
     signal scoreChanged(int score)
     signal nextPiece(int shape)
 
@@ -70,19 +72,28 @@ Item {
             if (landed) {
                 listModel.landPiece(piece.shape, piece.centerPt)
 
-                if (listModel.getState(piece.centerPt))
+                if (listModel.getState(board.startPoint) === Cell.Filled) {
+                    root.gameOver()
+                }
+                else {
+                    reset()
+                }
 
-                centerPt = board.startPoint
-                setRandomShape()
-
-                landed = false
-                dropping = true
             }
         }
 
-        //        Component.onCompleted: setRandomShape()
-        shape: TetrixPiece.LShape
+        Component.onCompleted: setRandomShape()
+        //        shape: TetrixPiece.LShape
         onShapeChanged: fillAndUpdate()
+
+        function reset() {
+            centerPt = board.startPoint
+            setRandomShape()
+
+            landed = false
+            dropping = true
+        }
+
         // public
         function tryRotate() {
             if (listModel.canRotate(piece.shape, piece.centerPt))

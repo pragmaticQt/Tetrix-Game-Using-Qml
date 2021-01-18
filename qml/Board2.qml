@@ -8,10 +8,7 @@ ListView {
     interactive: false
 
     delegate: BoardRow {
-        row: index
-        values: {
-            var result = root.model.getRow(index)
-            return result
-        }
+        yIndex: index
+        values: model.display
     }
 }

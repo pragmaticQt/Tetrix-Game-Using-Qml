@@ -6,7 +6,7 @@ import io.qt.examples.Tetrix 1.0
 Row {
     id: root
     property var values
-    property int row: 0
+    property int yIndex
 
     spacing: ListView.view.spacing
 
@@ -15,7 +15,7 @@ Row {
         model: values
         delegate: BoardCell {
             size: root.ListView.view.cellSize
-            pt: Qt.point(index, root.row)
+            pt: Qt.point(index, root.yIndex)
             target: root.ListView.view.model
         }
     }

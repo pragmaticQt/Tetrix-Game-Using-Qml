@@ -54,7 +54,9 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);});
+                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);}) &&
+               std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + originPt;return getState(pt)==Cell::Filled;});
     }
     // never go up
     Q_INVOKABLE bool canGoUp(int shape, const QPoint& originPt) const {
@@ -70,8 +72,8 @@ public:
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()-1, pt.y()});})&&
-               std::all_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()-1, pt.y()}) != Cell::Filled;});
+               std::none_of(std::begin(coords), std::end(coords),
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()-1, pt.y()}) == Cell::Filled;});
     }
     Q_INVOKABLE bool canGoRight(int shape, const QPoint& originPt) const {
 
@@ -81,8 +83,8 @@ public:
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()+1, pt.y()});})&&
-               std::all_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()+1, pt.y()}) != Cell::Filled;});
+               std::none_of(std::begin(coords), std::end(coords),
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()+1, pt.y()}) == Cell::Filled;});
     }
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
@@ -93,13 +95,14 @@ public:
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
-               std::all_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) != Cell::Filled;});
+               std::none_of(std::begin(coords), std::end(coords),
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;});
     }
     //
     // cells operations
     Q_INVOKABLE  void landPiece(int shape, const QPoint& originPt){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+        //        QVector<bool> affectedRows;
         for ( auto &point: coords ) {
             auto pt = point + originPt;
 
@@ -107,7 +110,20 @@ public:
                 continue;
 
             m_board[pt.y()][pt.x()] = Cell::Filled;
+
         }
+
+        for ( auto &row: m_board ) {
+            auto b = std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Filled;});
+            if (b) {
+                resetRow(row);
+            }
+        }
+
+        std::stable_partition(std::begin(m_board), std::end(m_board), [](const auto& row) {
+            return std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Empty;});
+        });
+
     }
 
     Q_INVOKABLE  void fillPiece(int shape, const QPoint& originPt){
@@ -134,7 +150,11 @@ public:
         }
     }
 
-    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Cell::Empty); }
+    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) resetRow(row); }
+
+    void resetRow(auto &row) {
+        std::fill(std::begin(row), std::end(row), Cell::Empty);
+    }
     // edge detections
     bool outRight(const QPoint& pt) const {
         if( pt.x() >= size().width())

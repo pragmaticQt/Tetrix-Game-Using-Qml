@@ -5,7 +5,7 @@
 #include <QtCore>
 #include <iterator>
 #include <algorithm>
-
+#include <random>
 using std::min_element;
 using std::max_element;
 using std::cbegin;
@@ -59,8 +59,9 @@ public:
     static const QPoint CoordinatesTable[TetrixShape::Count][TetrixPieceBlocks];
 
     Q_INVOKABLE void setRandomShape(){
-        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
-        setShape(TetrixShape::Value(randomShapeExceptNoShape));
+        //        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
+        static std::random_device rd;
+        setShape(TetrixShape::Value(1 + rd() % (TetrixShape::Count - 1)));
     }
 
     static TetrixShape::Value nextShapeIfRotated(TetrixShape::Value shape) {

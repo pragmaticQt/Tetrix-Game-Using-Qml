@@ -57,7 +57,7 @@ Item {
         running: piece.dropping
         interval: 1000
         onTriggered: {
-            console.debug("onTriggered")
+//            console.debug("onTriggered")
             piece.tryGoDown()
         }
     }
@@ -163,11 +163,11 @@ Item {
         id: board
         anchors.centerIn: parent
         anchors.fill: parent
-        cellSize: 40
+        cellSize: 30
         spacing: 1
 
-        readonly property size size: Qt.size(6, 10)
-        readonly property point startPoint: Qt.point(4, 1)
+        readonly property size size: Qt.size(10, 12)
+        readonly property point startPoint: Qt.point(5, 1)
 
         Component.onCompleted: { piece.shapeChanged() }
 

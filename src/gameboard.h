@@ -166,13 +166,13 @@ public:
 
         return false;
     }
-    Q_INVOKABLE Cell::Value getState(const QPoint& pt) const {
+    Q_INVOKABLE int/*Cell::Value*/ getState(const QPoint& pt) const {
 
         if (outOfRange(pt)) return Cell::Undefined;
 
         return Cell::Value(m_board[pt.y()][pt.x()].toInt());
     }
-    Q_INVOKABLE void setState(const QPoint& pt, Cell::Value state) {
+    Q_INVOKABLE void setState(const QPoint& pt, /*Cell::Value*/int state) {
 
         if(outOfRange(pt) || state==Cell::Undefined || getState(pt) == state)
             return;

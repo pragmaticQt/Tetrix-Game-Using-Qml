@@ -28,13 +28,13 @@ Item {
                 logic.resumeGame()
         }
 
-        if (event.key === Qt.Key_Up) pieceController.tryRotate()
+        if (event.key === Qt.Key_Up) piece.tryRotate()
 
-        if (event.key === Qt.Key_Left) pieceController.tryGoLeft()
+        if (event.key === Qt.Key_Left) piece.tryGoLeft()
 
-        if (event.key === Qt.Key_Right) pieceController.tryGoRight()
+        if (event.key === Qt.Key_Right) piece.tryGoRight()
 
-        if (event.key === Qt.Key_Down) pieceController.tryGoDown()
+        if (event.key === Qt.Key_Down) piece.tryGoDown()
 
     }
     Connections {
@@ -56,7 +56,7 @@ Item {
         interval: 1000
         onTriggered: {
             console.debug("onTriggered")
-            pieceController.tryGoDown()
+            piece.tryGoDown()
         }
     }
     TetrixPiece {
@@ -65,10 +65,31 @@ Item {
         property bool dropping: false
         property point centerPt: board.startPoint
 
+//        Component.onCompleted: setRandomShape()
         shape: TetrixPiece.LShape
         onShapeChanged: fillAndUpdate()
-
         // public
+        function tryRotate() {
+            if (listModel.canRotate(piece.shape, piece.centerPt))
+                next()
+        }
+        function tryGoLeft() {
+            if (listModel.canGoLeft(piece.shape, piece.centerPt))
+                goLeft()
+        }
+        function tryGoRight() {
+
+            if (listModel.canGoRight(piece.shape, piece.centerPt))
+                goRight()
+        }
+        function tryGoDown() {
+            if ( listModel.canGoDown(piece.shape, piece.centerPt) )
+                goDown()
+            else {
+                dropping = false
+            }
+        }
+        // private
         function goDown() {
             clear()
             centerPt.y += 1
@@ -92,7 +113,6 @@ Item {
             rotate()
         }
 
-        // private
         function fillAndUpdate() {
             fill()
             update()
@@ -110,36 +130,6 @@ Item {
             listModel.clearPiece(shape, centerPt)
         }
 
-    }
-
-    QtObject {
-        id: pieceController
-
-        signal tryRotate()
-        signal tryGoLeft()
-        signal tryGoRight()
-        signal tryGoDown()
-
-        onTryRotate: {
-            if (listModel.canRotate(piece.shape, piece.centerPt))
-                piece.next()
-        }
-        onTryGoLeft: {
-            if (listModel.canGoLeft(piece.shape, piece.centerPt))
-                piece.goLeft()
-        }
-        onTryGoRight: {
-
-            if (listModel.canGoRight(piece.shape, piece.centerPt))
-                piece.goRight()
-        }
-        onTryGoDown: {
-            if ( listModel.canGoDown(piece.shape, piece.centerPt) )
-                piece.goDown()
-            else {
-                piece.dropping = false
-            }
-        }
     }
 
     Board2 {

@@ -50,11 +50,6 @@ class TetrixPiece : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(TetrixShape::Value shape READ shape WRITE setShape NOTIFY shapeChanged)
-    Q_PROPERTY(QVariantList points READ points/* NOTIFY pointsChanged*/)
-    Q_PROPERTY(int minX READ minX)
-    Q_PROPERTY(int maxX READ maxX)
-    Q_PROPERTY(int minY READ minY)
-    Q_PROPERTY(int maxY READ maxY)
 
 public:
     TetrixPiece(TetrixShape::Value shape = TetrixShape::NoShape, QObject *parent = nullptr):
@@ -78,12 +73,7 @@ public:
     }
 
     Q_INVOKABLE void rotate() {
-        if (m_shape == TetrixShape::SquareShape || m_shape == TetrixShape::NoShape)
-            return;
-
         setShape(nextShapeIfRotated(m_shape));
-
-        emit shapeChanged();
     }
 
     void setShape(const TetrixShape::Value& shape){
@@ -125,7 +115,6 @@ public:
 
 signals:
     void shapeChanged();
-//    void pointsChanged();
 
 private:
     void setX(int index, int x) { m_coords[index].setX(x); }

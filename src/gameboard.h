@@ -41,20 +41,12 @@ public:
             m_board.clear();
             m_board.reserve(rows);
             for (auto i = 0; i < rows; ++i) {
-                QVector<QVariant> v(columns, Empty);
+                QVector<QVariant> v(columns, Cell::Empty);
                 m_board.push_back(v.toList());
             }
         }
     }
 
-    enum State // for cell
-    {
-        Undefined = -1, // out of range
-        Empty = 0,      // inrange,
-        Occupied,       // piece is drawn here temperarily
-        Filled          // piece can't move across it
-    };
-    Q_ENUM(State)
 
     Q_INVOKABLE bool canRotate(int shape, const QPoint& originPt) const {
 
@@ -79,7 +71,7 @@ public:
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()-1, pt.y()});})&&
                std::all_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()-1, pt.y()}) != Filled;});
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()-1, pt.y()}) != Cell::Filled;});
     }
     Q_INVOKABLE bool canGoRight(int shape, const QPoint& originPt) const {
 
@@ -90,7 +82,7 @@ public:
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()+1, pt.y()});})&&
                std::all_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()+1, pt.y()}) != Filled;});
+                            [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()+1, pt.y()}) != Cell::Filled;});
     }
     // piece movement detection
     Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
@@ -102,7 +94,7 @@ public:
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
                std::all_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) != Filled;});
+                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) != Cell::Filled;});
     }
     //
     // cells operations
@@ -114,7 +106,7 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Filled;
+            m_board[pt.y()][pt.x()] = Cell::Filled;
         }
     }
 
@@ -126,7 +118,7 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Occupied;
+            m_board[pt.y()][pt.x()] = Cell::Occupied;
         }
     }
 
@@ -138,12 +130,12 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Empty;
+            m_board[pt.y()][pt.x()] = Cell::Empty;
         }
     }
 
-    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Empty); }
-    //
+    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(std::begin(row), std::end(row), Cell::Empty); }
+    // edge detections
     bool outRight(const QPoint& pt) const {
         if( pt.x() >= size().width())
             return true;
@@ -174,15 +166,15 @@ public:
 
         return false;
     }
-    Q_INVOKABLE State getState(const QPoint& pt) const {
+    Q_INVOKABLE Cell::Value getState(const QPoint& pt) const {
 
-        if (outOfRange(pt)) return Undefined;
+        if (outOfRange(pt)) return Cell::Undefined;
 
-        return State(m_board[pt.y()][pt.x()].toInt());
+        return Cell::Value(m_board[pt.y()][pt.x()].toInt());
     }
-    Q_INVOKABLE void setState(const QPoint& pt, State state) {
+    Q_INVOKABLE void setState(const QPoint& pt, Cell::Value state) {
 
-        if(outOfRange(pt) || state==Undefined || getState(pt) == state)
+        if(outOfRange(pt) || state==Cell::Undefined || getState(pt) == state)
             return;
 
         m_board[pt.y()][pt.x()] = state;
@@ -207,7 +199,7 @@ public:
     }
 
     bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
-                  const QModelIndex &destinationParent, int destinationChild) Q_DECL_OVERRIDE{
+                  const QModelIndex &destinationParent, int destinationChild) Q_DECL_OVERRIDE {
         Q_UNUSED(sourceParent)
         Q_UNUSED(sourceRow)
         Q_UNUSED(count)

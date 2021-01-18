@@ -9,8 +9,11 @@ TEMPLATE = app
 INCLUDEPATH += ../../src/
 
 HEADERS += \
-    ../../src/tetrixpiece.h
+    ../../src/tetrixpiece.h \
+    ../../src/gameboard.h
 
 SOURCES +=  \
     ../../src/tetrixpiece.cpp \
-    tst_tsttetrixpiece.cpp
+    ../../src/gameboard.cpp \
+    tst_gameboard.cpp \
+    tst_tetrixpiece.cpp

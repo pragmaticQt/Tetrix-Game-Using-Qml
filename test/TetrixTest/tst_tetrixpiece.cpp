@@ -149,6 +149,6 @@ private slots:
 };
 
 
-QTEST_APPLESS_MAIN(tstTetrixPiece)
+//QTEST_APPLESS_MAIN(tstTetrixPiece)
 
-#include "tst_tsttetrixpiece.moc"
+#include "tst_tetrixpiece.moc"

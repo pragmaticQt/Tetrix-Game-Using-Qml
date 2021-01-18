@@ -9,100 +9,100 @@
 #include <algorithm>
 #include "tetrixpiece.h"
 
-class GameBoard : public QAbstractTableModel
-{
-    Q_OBJECT
-    Q_PROPERTY(QSize size READ size WRITE setSize)
+//class GameBoard : public QAbstractTableModel
+//{
+//    Q_OBJECT
+//    Q_PROPERTY(QSize size READ size WRITE setSize)
 
-public:
-    GameBoard(QObject *parent = nullptr):
-        QAbstractTableModel(parent)
-    {}
+//public:
+//    GameBoard(QObject *parent = nullptr):
+//        QAbstractTableModel(parent)
+//    {}
 
-    QSize size() const { return m_size; }
-    void setSize(QSize size) {
+//    QSize size() const { return m_size; }
+//    void setSize(QSize size) {
 
-        if (m_size != size) {
-            //            qDebug() << "setSize" << size;
-            m_size = size;
-            // resize board and fill each cell Empty
-            m_board.clear();
-            m_board.resize(m_size.height());
-            for (auto & cell: m_board) {
-                cell.resize(m_size.width());
-                std::fill(begin(cell), end(cell), Empty);
-            }
-            //            qDebug() << "m_board" << m_board;
-        }
-    }
+//        if (m_size != size) {
+//            //            qDebug() << "setSize" << size;
+//            m_size = size;
+//            // resize board and fill each cell Empty
+//            m_board.clear();
+//            m_board.resize(m_size.height());
+//            for (auto & cell: m_board) {
+//                cell.resize(m_size.width());
+//                std::fill(begin(cell), end(cell), Empty);
+//            }
+//            //            qDebug() << "m_board" << m_board;
+//        }
+//    }
 
-    enum State
-    {
-        Empty = 0,
-        Occupied
-    };
-    Q_ENUM(State)
+//    enum State
+//    {
+//        Empty = 0,
+//        Occupied
+//    };
+//    Q_ENUM(State)
 
-    Q_INVOKABLE  void fill(QVariantList points) {
-        //        qDebug() << points;
-        for ( auto &point: points ) {
-            auto pt = point.toPoint();
-            m_board[pt.y()][pt.x()] = Occupied;
-        }
-    }
-    Q_INVOKABLE  void reset(QVariantList points) {
-        //        qDebug() << points;
-        for ( auto &point: points ) {
-            auto pt = point.toPoint();
-            m_board[pt.y()][pt.x()] = Empty;
-        }
-    }
-    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(begin(row), end(row), Empty); }
-    Q_INVOKABLE State getState(int row, int col) const {
-        if((size_t) row >= m_board.size() || row < 0)
-            return Empty;
+//    Q_INVOKABLE  void fill(QVariantList points) {
+//        //        qDebug() << points;
+//        for ( auto &point: points ) {
+//            auto pt = point.toPoint();
+//            m_board[pt.y()][pt.x()] = Occupied;
+//        }
+//    }
+//    Q_INVOKABLE  void reset(QVariantList points) {
+//        //        qDebug() << points;
+//        for ( auto &point: points ) {
+//            auto pt = point.toPoint();
+//            m_board[pt.y()][pt.x()] = Empty;
+//        }
+//    }
+//    Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) std::fill(begin(row), end(row), Empty); }
+//    Q_INVOKABLE State getState(int row, int col) const {
+//        if((size_t) row >= m_board.size() || row < 0)
+//            return Empty;
 
-        if((size_t) col >= m_board.at(0).size() || col < 0)
-            return Empty;
+//        if((size_t) col >= m_board.at(0).size() || col < 0)
+//            return Empty;
 
-        return m_board.at(row).at(col);
-    }
-    Q_INVOKABLE void setState(int row, int col, State state) {
+//        return m_board.at(row).at(col);
+//    }
+//    Q_INVOKABLE void setState(int row, int col, State state) {
 
-        if(getState(row, col) == state)
-            return;
-        //        qDebug() << "setState" << row << col << state;
-        m_board.at(row).at(col) = state;
-    }
+//        if(getState(row, col) == state)
+//            return;
+//        //        qDebug() << "setState" << row << col << state;
+//        m_board.at(row).at(col) = state;
+//    }
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const {
-        return m_board.size();
-    }
-    int columnCount(const QModelIndex& parent = QModelIndex()) const {
-        return m_board.at(0).size();
-    }
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const {
-        if(!index.isValid())
-            return QVariant();
+//    int rowCount(const QModelIndex& parent = QModelIndex()) const {
+//        return m_board.size();
+//    }
+//    int columnCount(const QModelIndex& parent = QModelIndex()) const {
+//        return m_board.at(0).size();
+//    }
+//    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const {
+//        if(!index.isValid())
+//            return QVariant();
 
-        if(role != Qt::DisplayRole)
-            return QVariant();
+//        if(role != Qt::DisplayRole)
+//            return QVariant();
 
-        if((size_t) index.row() >= m_board.size() || index.row() < 0)
-            return QVariant();
+//        if((size_t) index.row() >= m_board.size() || index.row() < 0)
+//            return QVariant();
 
-        if((size_t) index.column() >= m_board.at(0).size() || index.column() < 0)
-            return QVariant();
+//        if((size_t) index.column() >= m_board.at(0).size() || index.column() < 0)
+//            return QVariant();
 
-        return QVariant::fromValue(getState(index.row(), index.column()));
-    }
+//        return QVariant::fromValue(getState(index.row(), index.column()));
+//    }
 
-signals:
+//signals:
 
-private:
-    std::vector<std::vector<State>> m_board;
-    QSize m_size;
-};
+//private:
+//    std::vector<std::vector<State>> m_board;
+//    QSize m_size;
+//};
 
 class GameBoardListModel : public QAbstractListModel
 {

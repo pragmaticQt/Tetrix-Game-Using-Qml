@@ -35,14 +35,14 @@ Window {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             NextPieceBoard {
-
+                nextPiece: game.nextShape
             }
-            LinesRemovedBoard {
-
+            ScoreBoard {
+                textContent: game.score
             }
-            LevelBoard {
-
-            }
+//            LevelBoard {
+//                textContent: "I"
+//            }
 
             Button {
                 id: button

@@ -140,7 +140,7 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Cell::Occupied;
+            if (m_board[pt.y()][pt.x()] == Cell::Empty) m_board[pt.y()][pt.x()] = Cell::Occupied;
         }
     }
 
@@ -152,7 +152,7 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Cell::Empty;
+            if (m_board[pt.y()][pt.x()] == Cell::Occupied) m_board[pt.y()][pt.x()] = Cell::Empty;
         }
     }
 

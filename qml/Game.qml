@@ -8,6 +8,8 @@ Frame {
     id: root
 
     property int lifeCycle: Game.LifeCycle.Ready
+    readonly property alias nextShape: piece.nextShape
+    readonly property alias score: listModel.score
 
     enum LifeCycle {
         Ready,
@@ -18,9 +20,6 @@ Frame {
 
     signal gamePaused()
     signal gameOver()
-
-    signal scoreChanged(int score)
-    signal nextPiece(int shape)
 
     property alias logic: conn.target
 
@@ -64,10 +63,11 @@ Frame {
     Connections {
         id: conn
         onStartGame: { // do init and this calls once per game
-//            if (lifeCycle===Game.Done) {
-                listModel.resetAll()
-                listModel.dataChanged()
-//            }
+
+            listModel.score = 0
+            listModel.resetAll()
+            listModel.dataChanged()
+
             piece.reset()
             root.lifeCycle = Game.Running
             bkgMusic.play()
@@ -84,6 +84,8 @@ Frame {
         }
         onStopGame: {
             bkgMusic.stop()
+            root.gameOver()
+
         }
     }
     Timer {
@@ -92,17 +94,18 @@ Frame {
         running: piece.dropping
         interval: 500
         onTriggered: {
-//            console.debug("onTriggered")
+            //            console.debug("onTriggered")
             piece.tryGoDown()
         }
     }
     TetrixPiece {
         id: piece
 
+        property int nextShape: getRandomShape()
+
         property bool landed: false
         property bool dropping: false
         property point centerPt: board.startPoint
-
 
         onLandedChanged: {
             if (landed) {
@@ -113,7 +116,6 @@ Frame {
                     gameLogic.stopGame()
                     gameoverSE.play()
                     root.lifeCycle = Game.Done
-                    root.gameOver()
                 }
                 else {
                     reset()
@@ -122,13 +124,15 @@ Frame {
             }
         }
 
-        Component.onCompleted: setRandomShape()
+        //        Component.onCompleted: setRandomShape()
         //        shape: TetrixPiece.LShape
         onShapeChanged: fillAndUpdate()
 
         function reset() {
             centerPt = board.startPoint
-            setRandomShape()
+
+            shape = nextShape
+            nextShape = getRandomShape()
 
             landed = false
             dropping = true
@@ -208,17 +212,33 @@ Frame {
 
         readonly property size size: Qt.size(10, 12)
         readonly property point startPoint: Qt.point(5, 1)
-
-//        Component.onCompleted: { piece.shapeChanged() }
+        //        Component.onCompleted: { piece.shapeChanged() }
 
         model: listModel
     }
 
     GameBoardListModel {
         id: listModel
+        property int score: 0
+
         size: board.size
         signal dataChanged()
-        onLinesCleared: clearSE.play()
+        onLinesCleared: {
+            score += calcScore(lines)
+            clearSE.play()
+        }
+        function calcScore(lines) {
+            if (lines === 1)
+                return 100
+            else if (lines === 2)
+                return 200
+            else if (lines === 3)
+                return 400
+            else if (lines === 4)
+                return 800
+            else
+                return 0
+        }
     }
 
 }

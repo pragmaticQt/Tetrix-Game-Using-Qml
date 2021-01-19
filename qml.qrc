@@ -10,7 +10,7 @@
         <file>imports/Tetrix/Board.qml</file>
         <file>imports/Tetrix/Constants.qml</file>
         <file>imports/Tetrix/LevelBoard.qml</file>
-        <file>imports/Tetrix/LinesRemovedBoard.qml</file>
+        <file>imports/Tetrix/ScoreBoard.qml</file>
         <file>imports/Tetrix/NextPiece.qml</file>
         <file>imports/Tetrix/NextPieceBoard.qml</file>
         <file>imports/Tetrix/qmldir</file>

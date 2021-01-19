@@ -58,10 +58,10 @@ public:
     static constexpr int TetrixPieceBlocks  = 4;
     static const QPoint CoordinatesTable[TetrixShape::Count][TetrixPieceBlocks];
 
-    Q_INVOKABLE void setRandomShape(){
-        //        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
-        static std::random_device rd;
-        setShape(TetrixShape::Value(1 + rd() % (TetrixShape::Count - 1)));
+    Q_INVOKABLE int getRandomShape() const{
+        auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
+        //static std::random_device rd;
+        return 1 + randomShapeExceptNoShape % (TetrixShape::Count - 1);
     }
 
     static TetrixShape::Value nextShapeIfRotated(TetrixShape::Value shape) {

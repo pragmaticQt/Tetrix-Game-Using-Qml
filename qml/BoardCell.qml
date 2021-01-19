@@ -25,7 +25,7 @@ Rectangle {
         switch(status+Cell.Empty) {
         default:
         case Cell.Empty:
-            return "red"
+            return "white"
         case Cell.Occupied:
         case Cell.Filled:
             return "black"

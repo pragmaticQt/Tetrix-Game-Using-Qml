@@ -1,10 +1,10 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQml 2.12
-
+import QtMultimedia 5.0
 import io.qt.examples.Tetrix 1.0
 
-Item {
+Frame {
     id: root
 
     property int lifeCycle: Game.LifeCycle.Ready
@@ -24,8 +24,8 @@ Item {
 
     property alias logic: conn.target
 
-    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing
-    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing
+    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing + 30
+    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing + 30
 
     Keys.onPressed: {
 
@@ -38,23 +38,36 @@ Item {
         if (event.key === Qt.Key_Down) piece.tryGoDown()
 
     }
+
+    Audio {
+        id: bkgMusic
+        autoPlay: false
+        autoLoad: true
+        source: Qt.resolvedUrl("../assets/tetris.mp3")
+        loops: Audio.Infinite
+        onError: console.debug(errorString)
+    }
+
     Connections {
         id: conn
         onStartGame: { // do init and this calls once per game
-            if (lifeCycle===Game.Done) {
+//            if (lifeCycle===Game.Done) {
                 listModel.resetAll()
                 listModel.dataChanged()
-            }
+//            }
             piece.reset()
             root.lifeCycle = Game.Running
+            bkgMusic.play()
         }
         onPauseGame: {
             piece.dropping = false
             root.lifeCycle = Game.Paused
+            bkgMusic.pause()
         }
         onResumeGame: {
             piece.dropping = true
             root.lifeCycle = Game.Running
+            bkgMusic.play()
         }
     }
     Timer {
@@ -171,12 +184,12 @@ Item {
         anchors.centerIn: parent
         anchors.fill: parent
         cellSize: 30
-        spacing: 1
+        spacing: 2
 
         readonly property size size: Qt.size(10, 12)
         readonly property point startPoint: Qt.point(5, 1)
 
-        Component.onCompleted: { piece.shapeChanged() }
+//        Component.onCompleted: { piece.shapeChanged() }
 
         model: listModel
     }

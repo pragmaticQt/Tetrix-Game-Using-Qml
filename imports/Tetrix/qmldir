@@ -1,0 +1,6 @@
+singleton Constants 1.0 Constants.qml
+Board 1.0 Board.qml
+LevelBoard 1.0 LevelBoard.qml
+LinesRemovedBoard 1.0 LinesRemovedBoard.qml
+NextPiece 1.0 NextPiece.qml
+NextPieceBoard 1.0 NextPieceBoard.qml

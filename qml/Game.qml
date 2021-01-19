@@ -7,7 +7,14 @@ import io.qt.examples.Tetrix 1.0
 Item {
     id: root
 
-    property bool running: false
+    property int lifeCycle: Game.LifeCycle.Ready
+
+    enum LifeCycle {
+        Ready,
+        Running,
+        Paused,
+        Done
+    }
 
     signal gamePaused()
     signal gameOver()
@@ -22,14 +29,7 @@ Item {
 
     Keys.onPressed: {
 
-        if (event.key === Qt.Key_Space) {
-            if (piece.dropping)
-                logic.pauseGame()
-            else
-                logic.resumeGame()
-        }
-
-        if (event.key === Qt.Key_Up) piece.tryRotate()
+        if (event.key === Qt.Key_Up/* || event.key === Qt.Key_Space*/) piece.tryRotate()
 
         if (event.key === Qt.Key_Left) piece.tryGoLeft()
 
@@ -41,23 +41,27 @@ Item {
     Connections {
         id: conn
         onStartGame: { // do init and this calls once per game
-            piece.dropping = true
-            root.running = true
+            if (lifeCycle===Game.Done) {
+                listModel.resetAll()
+                listModel.dataChanged()
+            }
+            piece.reset()
+            root.lifeCycle = Game.Running
         }
         onPauseGame: {
             piece.dropping = false
-            root.running = false
+            root.lifeCycle = Game.Paused
         }
         onResumeGame: {
             piece.dropping = true
-            root.running = true
+            root.lifeCycle = Game.Running
         }
     }
     Timer {
         id: timer
         repeat: true
         running: piece.dropping
-        interval: 1000
+        interval: 500
         onTriggered: {
 //            console.debug("onTriggered")
             piece.tryGoDown()
@@ -75,7 +79,7 @@ Item {
                 listModel.landPiece(piece.shape, piece.centerPt)
 
                 if (listModel.getState(board.startPoint) === Cell.Filled) {
-                    root.running = false
+                    root.lifeCycle = Game.Done
                     root.gameOver()
                 }
                 else {

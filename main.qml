@@ -28,10 +28,35 @@ Window {
         id: button
         x: 33
         y: 220
-        text: game.running ? qsTr("Stop") : qsTr("Start")
+        text: {
+            switch (game.lifeCycle) {
+            default:
+            case Game.Ready:
+            case Game.Done:
+                return qsTr("Start")
+            case Game.Running:
+                return qsTr("Pause")
+            case Game.Paused:
+                return qsTr("Resume")
+            }
+        }
+
         onClicked: {
             game.forceActiveFocus()
-            game.running ? gameLogic.pauseGame() : gameLogic.startGame()
+
+            switch (game.lifeCycle) {
+            default:
+            case Game.Ready:
+            case Game.Done:
+                gameLogic.startGame()
+                break;
+            case Game.Running:
+                gameLogic.pauseGame()
+                break;
+            case Game.Paused:
+                gameLogic.resumeGame()
+                break;
+            }
         }
     }
 

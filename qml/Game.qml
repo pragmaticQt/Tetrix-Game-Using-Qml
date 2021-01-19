@@ -7,11 +7,10 @@ import io.qt.examples.Tetrix 1.0
 Item {
     id: root
 
-    signal gameRunning()
+    property bool running: false
+
     signal gamePaused()
     signal gameOver()
-
-    onGameOver: console.debug("game over")
 
     signal scoreChanged(int score)
     signal nextPiece(int shape)
@@ -20,7 +19,7 @@ Item {
 
     width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing
     height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing
-    focus: true
+
     Keys.onPressed: {
 
         if (event.key === Qt.Key_Space) {
@@ -43,12 +42,15 @@ Item {
         id: conn
         onStartGame: { // do init and this calls once per game
             piece.dropping = true
+            root.running = true
         }
         onPauseGame: {
             piece.dropping = false
+            root.running = false
         }
         onResumeGame: {
             piece.dropping = true
+            root.running = true
         }
     }
     Timer {
@@ -73,6 +75,7 @@ Item {
                 listModel.landPiece(piece.shape, piece.centerPt)
 
                 if (listModel.getState(board.startPoint) === Cell.Filled) {
+                    root.running = false
                     root.gameOver()
                 }
                 else {

@@ -14,12 +14,25 @@ Window {
     title: qsTr("Hello Tetrix")
 
     Game {
+        id: game
+        focus: true
         logic: gameLogic
         anchors.centerIn: parent
     }
 
     GameLogic {
         id: gameLogic
+    }
+
+    Button {
+        id: button
+        x: 33
+        y: 220
+        text: game.running ? qsTr("Stop") : qsTr("Start")
+        onClicked: {
+            game.forceActiveFocus()
+            game.running ? gameLogic.pauseGame() : gameLogic.startGame()
+        }
     }
 
 

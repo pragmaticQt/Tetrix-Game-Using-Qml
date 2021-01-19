@@ -14,5 +14,11 @@
         <file>imports/Tetrix/NextPiece.qml</file>
         <file>imports/Tetrix/NextPieceBoard.qml</file>
         <file>imports/Tetrix/qmldir</file>
+        <file>assets/clear.wav</file>
+        <file>assets/fall.wav</file>
+        <file>assets/gameover.wav</file>
+        <file>assets/line.wav</file>
+        <file>assets/selection.wav</file>
+        <file>assets/success.wav</file>
     </qresource>
 </RCC>

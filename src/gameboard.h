@@ -113,16 +113,22 @@ public:
 
         }
 
+        auto linesFilled = 0;
+
         for ( auto &row: m_board ) {
             auto b = std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Filled;});
             if (b) {
+                ++linesFilled;
                 resetRow(row);
             }
         }
 
-        std::stable_partition(std::begin(m_board), std::end(m_board), [](const auto& row) {
-            return std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Empty;});
-        });
+        if (linesFilled) {
+            std::stable_partition(std::begin(m_board), std::end(m_board), [](const auto& row) {
+                return std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Empty;});
+            });
+            emit linesCleared(linesFilled);
+        }
 
     }
 
@@ -229,7 +235,7 @@ public:
     }
 
 signals:
-    //    dataChanged();
+    void linesCleared(int lines);
 
 private:
     QList<QVariantList> m_board;

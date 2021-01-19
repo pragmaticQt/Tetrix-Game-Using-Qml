@@ -48,6 +48,19 @@ Frame {
         onError: console.debug(errorString)
     }
 
+    SoundEffect {
+        id: clearSE
+        source: Qt.resolvedUrl("../assets/clear.wav")
+    }
+    SoundEffect {
+        id: landSE
+        source: Qt.resolvedUrl("../assets/fall.wav")
+    }
+    SoundEffect {
+        id: gameoverSE
+        source: Qt.resolvedUrl("../assets/gameover.wav")
+    }
+
     Connections {
         id: conn
         onStartGame: { // do init and this calls once per game
@@ -69,6 +82,9 @@ Frame {
             root.lifeCycle = Game.Running
             bkgMusic.play()
         }
+        onStopGame: {
+            bkgMusic.stop()
+        }
     }
     Timer {
         id: timer
@@ -87,11 +103,15 @@ Frame {
         property bool dropping: false
         property point centerPt: board.startPoint
 
+
         onLandedChanged: {
             if (landed) {
+                landSE.play()
                 listModel.landPiece(piece.shape, piece.centerPt)
 
                 if (listModel.getState(board.startPoint) === Cell.Filled) {
+                    gameLogic.stopGame()
+                    gameoverSE.play()
                     root.lifeCycle = Game.Done
                     root.gameOver()
                 }
@@ -198,6 +218,7 @@ Frame {
         id: listModel
         size: board.size
         signal dataChanged()
+        onLinesCleared: clearSE.play()
     }
 
 }

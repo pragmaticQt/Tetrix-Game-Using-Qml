@@ -26,13 +26,14 @@ class GameBoardListModel : public QAbstractListModel
     Q_OBJECT
     Q_PROPERTY(QSize size READ size WRITE setSize)
     Q_PROPERTY(QPoint startPoint READ startPoint)
+    Q_PROPERTY(QPoint tetrimino READ tetrimino)
 
 public:
     GameBoardListModel(QObject *parent = nullptr):
         QAbstractListModel(parent), m_startPoint({5, 1})
     {
         setSize({10, 20});
-
+        m_tetrimino = m_startPoint;
     }
 
     QSize size() const { return QSize(m_board.size() > 0 ? m_board[0].size() : 0, m_board.size()); }
@@ -50,68 +51,69 @@ public:
             }
 
             m_startPoint = {columns/2, 1};
+            m_tetrimino = m_startPoint;
         }
     }
 
     QPoint startPoint() const { return m_startPoint; }
+    QPoint tetrimino() const { return m_tetrimino; }
 
-    Q_INVOKABLE bool canRotate(int shape, const QPoint& originPt) const {
+    Q_INVOKABLE bool canRotate(int shape) const {
 
         auto nextShape = TetrixPiece::nextShapeIfRotated((TetrixShape::Value)shape);
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);}) &&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange(pt);}) &&
                std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return getState(pt)==Cell::Filled;});
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return getState(pt)==Cell::Filled;});
     }
     // never go up
-    Q_INVOKABLE bool canGoUp(int shape, const QPoint& originPt) const {
+    Q_INVOKABLE bool canGoUp(int shape) const {
         Q_UNUSED(shape)
-        Q_UNUSED(originPt)
         return false;
     }
-    Q_INVOKABLE bool canGoLeft(int shape, const QPoint& originPt) const {
+    Q_INVOKABLE bool canGoLeft(int shape) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()-1, pt.y()});})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange({pt.x()-1, pt.y()});})&&
                std::none_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()-1, pt.y()}) == Cell::Filled;});
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->getState({pt.x()-1, pt.y()}) == Cell::Filled;});
     }
-    Q_INVOKABLE bool canGoRight(int shape, const QPoint& originPt) const {
+    Q_INVOKABLE bool canGoRight(int shape) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange({pt.x()+1, pt.y()});})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange({pt.x()+1, pt.y()});})&&
                std::none_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState({pt.x()+1, pt.y()}) == Cell::Filled;});
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->getState({pt.x()+1, pt.y()}) == Cell::Filled;});
     }
     // piece movement detection
-    Q_INVOKABLE bool canGoDown(int shape, const QPoint& originPt) const {
+    Q_INVOKABLE bool canGoDown(int shape) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
 
         return std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(pt);})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange(pt);})&&
                std::none_of(std::begin(coords), std::end(coords),
-                            [&](const auto &point){ auto pt = point + originPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
                std::none_of(std::begin(coords), std::end(coords),
-                           [&](const auto &point){ auto pt = point + originPt;return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;});
+                            [&](const auto &point){ auto pt = point + m_tetrimino;return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;});
     }
     //
-    // cells operations
-    Q_INVOKABLE  void landPiece(int shape, const QPoint& originPt){
+    // tetrimino operations
+    Q_INVOKABLE  void landPiece(int shape){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         //        QVector<bool> affectedRows;
         for ( auto &point: coords ) {
-            auto pt = point + originPt;
+            auto pt = point + m_tetrimino;
 
             if (outOfRange(pt))
                 continue;
@@ -119,7 +121,7 @@ public:
             m_board[pt.y()][pt.x()] = Cell::Filled;
 
         }
-
+        m_tetrimino = m_startPoint;
         auto linesFilled = 0;
 
         for ( auto &row: m_board ) {
@@ -139,10 +141,10 @@ public:
 
     }
 
-    Q_INVOKABLE  void fillPiece(int shape, const QPoint& originPt){
+    Q_INVOKABLE  void fillPiece(int shape){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
-            auto pt = point + originPt;
+            auto pt = point + m_tetrimino;
 
             if (outOfRange(pt))
                 continue;
@@ -151,10 +153,10 @@ public:
         }
     }
 
-    Q_INVOKABLE  void clearPiece(int shape, const QPoint& originPt){
+    Q_INVOKABLE  void clearPiece(int shape){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         for ( auto &point: coords ) {
-            auto pt = point + originPt;
+            auto pt = point + m_tetrimino;
 
             if (outOfRange(pt))
                 continue;
@@ -164,6 +166,10 @@ public:
     }
 
     Q_INVOKABLE  void resetAll() { for ( auto &row: m_board ) resetRow(row); }
+
+    Q_INVOKABLE void tetriminoGoLeft() { m_tetrimino.rx() -= 1; }
+    Q_INVOKABLE void tetriminoGoRight() { m_tetrimino.rx() += 1; }
+    Q_INVOKABLE void tetriminoGoDown() { m_tetrimino.ry() += 1; }
 
     void resetRow(auto &row) {
         std::fill(std::begin(row), std::end(row), Cell::Empty);
@@ -247,6 +253,7 @@ signals:
 private:
     QList<QVariantList> m_board;
     QPoint m_startPoint;
+    QPoint m_tetrimino;
 
 };
 #endif // GAMEBOARD_H

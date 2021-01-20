@@ -23,8 +23,8 @@ Frame {
 
     property alias logic: conn.target
 
-    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing + 24
-    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing + 24
+    width: board.cellSize * listModel.size.width + (listModel.size.width - 1) * board.spacing + 24
+    height: board.cellSize * listModel.size.height + (listModel.size.height - 1) * board.spacing + 24
 
     Keys.onPressed: {
 
@@ -105,14 +105,13 @@ Frame {
 
         property bool landed: false
         property bool dropping: false
-        property point centerPt: board.startPoint
 
         onLandedChanged: {
             if (landed) {
                 landSE.play()
-                listModel.landPiece(piece.shape, piece.centerPt)
+                listModel.landPiece(piece.shape)
 
-                if (listModel.getState(board.startPoint) === Cell.Filled) {
+                if (listModel.getState(listModel.startPoint) === Cell.Filled) {
                     gameLogic.stopGame()
                     gameoverSE.play()
                     root.lifeCycle = Game.Done
@@ -124,12 +123,9 @@ Frame {
             }
         }
 
-        //        Component.onCompleted: setRandomShape()
-        //        shape: TetrixPiece.LShape
         onShapeChanged: fillAndUpdate()
 
         function reset() {
-            centerPt = board.startPoint
 
             shape = nextShape
             nextShape = getRandomShape()
@@ -140,20 +136,20 @@ Frame {
 
         // public
         function tryRotate() {
-            if (listModel.canRotate(piece.shape, piece.centerPt))
+            if (listModel.canRotate(piece.shape))
                 next()
         }
         function tryGoLeft() {
-            if (listModel.canGoLeft(piece.shape, piece.centerPt))
+            if (listModel.canGoLeft(piece.shape))
                 goLeft()
         }
         function tryGoRight() {
 
-            if (listModel.canGoRight(piece.shape, piece.centerPt))
+            if (listModel.canGoRight(piece.shape))
                 goRight()
         }
         function tryGoDown() {
-            if ( listModel.canGoDown(piece.shape, piece.centerPt) )
+            if ( listModel.canGoDown(piece.shape) )
                 goDown()
             else {
                 dropping = false
@@ -163,19 +159,25 @@ Frame {
         // private
         function goDown() {
             clear()
-            centerPt.y += 1
+
+            listModel.tetriminoGoDown()
+
             fillAndUpdate()
         }
 
         function goLeft() {
             clear()
-            centerPt.x -= 1
+
+            listModel.tetriminoGoLeft()
+
             fillAndUpdate()
         }
 
         function goRight() {
             clear()
-            centerPt.x += 1
+
+            listModel.tetriminoGoRight()
+
             fillAndUpdate()
         }
 
@@ -194,20 +196,17 @@ Frame {
         }
 
         function fill() {
-            listModel.fillPiece(shape, centerPt)
+            listModel.fillPiece(shape)
         }
 
         function clear() {
-            listModel.clearPiece(shape, centerPt)
+            listModel.clearPiece(shape)
         }
 
     }
 
     Board2 {
         id: board
-
-        /*readonly */property size size: board.model.size
-        readonly property point startPoint: board.model.startPoint
 
         anchors.centerIn: parent
         anchors.fill: parent
@@ -222,9 +221,6 @@ Frame {
         id: listModel
 
         property int score: 0
-//        readonly property point startPoint: Qt.point(5, 1)
-
-//        size: Qt.size(10, 20)
 
         signal dataChanged()
 

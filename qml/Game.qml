@@ -27,6 +27,7 @@ Frame {
     height: board.cellSize * listModel.size.height + (listModel.size.height - 1) * board.spacing + 24
 
     Keys.onPressed: {
+        if (event.key === Qt.Key_Space) { piece.clear(); listModel.hardDrop(piece.shape); piece.landed = true; }
 
         if (event.key === Qt.Key_Up/* || event.key === Qt.Key_Space*/) piece.tryRotate()
 

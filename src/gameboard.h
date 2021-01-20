@@ -96,6 +96,20 @@ public:
                             [&](const auto &point){ auto pt = point + m_tetrimino;return this->getState({pt.x()+1, pt.y()}) == Cell::Filled;});
     }
     // piece movement detection
+    int canGoDownMost(int shape) const {
+
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
+        QPoint startPt = m_tetrimino;
+
+        while (std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + startPt;return this->outOfRange(pt);})&&
+               std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + startPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
+               std::none_of(std::begin(coords), std::end(coords),
+                            [&](const auto &point){ auto pt = point + startPt;return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;}))
+            startPt.ry() += 1;
+        return startPt.y() - m_tetrimino.y();
+    }
     Q_INVOKABLE bool canGoDown(int shape) const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
@@ -109,6 +123,13 @@ public:
     }
     //
     // tetrimino operations
+    // drop tetrimino directly to its final position
+    Q_INVOKABLE  void hardDrop(int shape){
+        int distance = canGoDownMost(shape);
+        m_tetrimino.ry() += distance;
+//        landPiece(shape);
+    }
+
     Q_INVOKABLE  void landPiece(int shape){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape];
         //        QVector<bool> affectedRows;

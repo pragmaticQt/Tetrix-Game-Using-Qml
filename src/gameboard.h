@@ -25,14 +25,18 @@ class GameBoardListModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(QSize size READ size WRITE setSize)
+    Q_PROPERTY(QPoint startPoint READ startPoint)
 
 public:
     GameBoardListModel(QObject *parent = nullptr):
-        QAbstractListModel(parent)
-    {}
+        QAbstractListModel(parent), m_startPoint({5, 1})
+    {
+        setSize({10, 20});
+
+    }
 
     QSize size() const { return QSize(m_board.size() > 0 ? m_board[0].size() : 0, m_board.size()); }
-    void setSize(QSize size) {
+    void setSize(const QSize& size) {
         if (this->size() != size) {
             // resize board and fill each cell Empty
             auto rows = size.height();
@@ -44,9 +48,12 @@ public:
                 QVector<QVariant> v(columns, Cell::Empty);
                 m_board.push_back(v.toList());
             }
+
+            m_startPoint = {columns/2, 1};
         }
     }
 
+    QPoint startPoint() const { return m_startPoint; }
 
     Q_INVOKABLE bool canRotate(int shape, const QPoint& originPt) const {
 
@@ -239,6 +246,7 @@ signals:
 
 private:
     QList<QVariantList> m_board;
+    QPoint m_startPoint;
 
 };
 #endif // GAMEBOARD_H

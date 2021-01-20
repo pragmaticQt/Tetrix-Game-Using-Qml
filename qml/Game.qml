@@ -23,8 +23,8 @@ Frame {
 
     property alias logic: conn.target
 
-    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing + 30
-    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing + 30
+    width: board.cellSize * board.size.width + (board.size.width - 1) * board.spacing + 24
+    height: board.cellSize * board.size.height + (board.size.height - 1) * board.spacing + 24
 
     Keys.onPressed: {
 
@@ -205,28 +205,34 @@ Frame {
 
     Board2 {
         id: board
+
+        /*readonly */property size size: board.model.size
+        readonly property point startPoint: board.model.startPoint
+
         anchors.centerIn: parent
         anchors.fill: parent
-        cellSize: 30
-        spacing: 2
 
-        readonly property size size: Qt.size(10, 12)
-        readonly property point startPoint: Qt.point(5, 1)
-        //        Component.onCompleted: { piece.shapeChanged() }
+        cellSize: 20
+        spacing: 2
 
         model: listModel
     }
 
     GameBoardListModel {
         id: listModel
-        property int score: 0
 
-        size: board.size
+        property int score: 0
+//        readonly property point startPoint: Qt.point(5, 1)
+
+//        size: Qt.size(10, 20)
+
         signal dataChanged()
+
         onLinesCleared: {
             score += calcScore(lines)
             clearSE.play()
         }
+
         function calcScore(lines) {
             if (lines === 1)
                 return 100

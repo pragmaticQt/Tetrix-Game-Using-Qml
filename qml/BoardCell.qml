@@ -30,6 +30,8 @@ Rectangle {
             return "green"
         case Cell.Filled:
             return "black"
+        case Cell.Ghost:
+            return "lightgreen"
         }
     }
 }

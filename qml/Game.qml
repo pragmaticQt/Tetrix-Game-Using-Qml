@@ -99,6 +99,12 @@ Frame {
             piece.tryGoDown()
         }
     }
+
+    TetrixPiece {
+        id: ghostPiece
+        shape: piece.shape
+    }
+
     TetrixPiece {
         id: piece
 
@@ -220,7 +226,7 @@ Frame {
 
     GameBoardListModel {
         id: listModel
-
+        shape: piece.shape
         property int score: 0
 
         signal dataChanged()

@@ -65,7 +65,6 @@ Frame {
         id: conn
         onStartGame: { // do init and this calls once per game
             listModel.score = 0
-            listModel.resetAll()
             listModel.start()
             listModel.dataChanged()
 
@@ -88,8 +87,6 @@ Frame {
             bkgMusic.stop()
             gameoverSE.play()
             root.lifeCycle = Game.Done
-//            listModel.resetAll()
-//            listModel.dataChanged()
         }
     }
 
@@ -166,18 +163,10 @@ Frame {
         Component.onCompleted: {
             listModel.gameOver.connect(root.gameOver)
             listModel.gameOver.connect(gameLogic.stopGame)
-        }
-
-//        onGameOver: {
-//            piece.dropping = false;
-
-//            gameLogic.stopGame()
-//            gameoverSE.play()
-//            root.lifeCycle = Game.Done
-//        }
-        onPieceLanded: {
-            landSE.play()
-            piece.reset()
+            listModel.pieceLanded.connect(function(){
+                landSE.play()
+                piece.reset()
+            })
         }
 
         function calcScore(lines) {

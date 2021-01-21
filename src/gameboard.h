@@ -44,6 +44,64 @@ public:
         setTetrimino(m_startPoint);
     }
 
+    Q_INVOKABLE void start() {
+        resetAll();
+        m_piece.setCenter(m_startPoint);
+        m_piece.setShape(TetrixPiece::getRandomShape());
+        fillPiece();
+        fillGhost();
+        setNextShape();
+    }
+    //
+    Q_INVOKABLE  void rotateTetrimino() {
+        if (canRotate()) {
+            clearPiece();
+            m_piece.rotate();
+            setShape(m_piece.shape());
+            fillPiece();
+        }
+    }
+    // tetrimino operations
+    Q_INVOKABLE  void goLeft(){
+        if (canGoLeft()) {
+            clearPiece();
+            setTetrimino({m_piece.center().x()-1, m_piece.center().y()});
+            fillPiece();
+        }
+    }
+    Q_INVOKABLE  void goRight(){
+        if (canGoRight()) {
+            clearPiece();
+            setTetrimino({m_piece.center().x()+1, m_piece.center().y()});
+            fillPiece();
+        }
+    }
+    Q_INVOKABLE  void softDrop(){
+        if (canGoDown()) {
+            clearPiece();
+            setTetrimino({m_piece.center().x(), m_piece.center().y() + 1});
+            fillPiece();
+        }
+        else
+            landPiece();
+    }
+    // drop tetrimino directly to its final position
+    Q_INVOKABLE  void hardDrop(){
+        int distance = canGoDownMost();
+        if (distance) {
+            clearPiece();
+            setTetrimino({m_piece.center().x(), m_piece.center().y() + distance});
+            fillPiece();
+            landPiece();
+        }
+    }
+    Q_INVOKABLE int/*Cell::Value*/ getState(const QPoint& pt) const {
+
+        if (outOfRange(pt)) return Cell::Undefined;
+
+        return Cell::Value(m_board[pt.y()][pt.x()].toInt());
+    }
+    //
     int shape() const { return m_piece.shape(); }
     void setShape(int shape) {
         if (shape != this->shape()) {
@@ -90,7 +148,7 @@ public:
                 if (outOfRange(pt))
                     continue;
 
-                if (m_board[pt.y()][pt.x()] == Cell::Empty) m_board[pt.y()][pt.x()] = Cell::Ghost;
+                if (getState(pt) == Cell::Empty) setState(pt, Cell::Ghost);
             }
         }
     }
@@ -104,14 +162,8 @@ public:
         }
     }
 
-    Q_INVOKABLE void start() {
-        m_piece.setCenter(m_startPoint);
-        m_piece.setShape(TetrixPiece::getRandomShape());
-        fillPiece();
-        fillGhost();
-        setNextShape();
-    }
-    Q_INVOKABLE bool canRotate() const {
+
+    bool canRotate() const {
 
         auto nextShape = TetrixPiece::nextShapeIfRotated((TetrixShape::Value)shape());
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
@@ -173,51 +225,8 @@ public:
                std::none_of(std::begin(coords), std::end(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;});
     }
-    //
-    Q_INVOKABLE  void rotateTetrimino() {
-        if (canRotate()) {
-            clearPiece();
-            m_piece.rotate();
-            setShape(m_piece.shape());
-            fillPiece();
-        }
-    }
-    // tetrimino operations
-    Q_INVOKABLE  void goLeft(){
-        if (canGoLeft()) {
-            clearPiece();
-            setTetrimino({m_piece.center().x()-1, m_piece.center().y()});
-            fillPiece();
-        }
-    }
-    Q_INVOKABLE  void goRight(){
-        if (canGoRight()) {
-            clearPiece();
-            setTetrimino({m_piece.center().x()+1, m_piece.center().y()});
-            fillPiece();
-        }
-    }
-    Q_INVOKABLE  void softDrop(){
-        if (canGoDown()) {
-            clearPiece();
-            setTetrimino({m_piece.center().x(), m_piece.center().y() + 1});
-            fillPiece();
-        }
-        else
-            landPiece();
-    }
-    // drop tetrimino directly to its final position
-    Q_INVOKABLE  void hardDrop(){
-        int distance = canGoDownMost();
-        if (distance) {
-            clearPiece();
-            setTetrimino({m_piece.center().x(), m_piece.center().y() + distance});
-            fillPiece();
-            landPiece();
-        }
-    }
 
-    Q_INVOKABLE  void landPiece(){
+    void landPiece(){
 
         clearGhost();
 
@@ -228,7 +237,7 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            m_board[pt.y()][pt.x()] = Cell::Filled;
+            setState(pt, Cell::Filled);
 
         }
         emit pieceLanded();
@@ -256,16 +265,12 @@ public:
             return;
         }
 
-        //setShape(nextShape());
         m_piece.setShape((TetrixShape::Value)nextShape());
         setNextShape();
         m_piece.setCenter(m_startPoint);
-
-        fillPiece();
-        fillGhost();
     }
 
-    Q_INVOKABLE  void fillPiece(){
+    void fillPiece(){
         if (shape() != TetrixShape::NoShape) {
             const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
             for ( auto &point: coords ) {
@@ -274,12 +279,12 @@ public:
                 if (outOfRange(pt))
                     continue;
 
-                if (m_board[pt.y()][pt.x()] == Cell::Empty) m_board[pt.y()][pt.x()] = Cell::Occupied;
+                if (getState(pt) == Cell::Empty) setState(pt, Cell::Occupied);
             }
         }
     }
 
-    Q_INVOKABLE  void clearPiece(){
+    void clearPiece(){
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
         for ( auto &point: coords ) {
             auto pt = point + m_piece.center();
@@ -287,11 +292,11 @@ public:
             if (outOfRange(pt))
                 continue;
 
-            if (m_board[pt.y()][pt.x()] == Cell::Occupied) m_board[pt.y()][pt.x()] = Cell::Empty;
+            if (getState(pt) == Cell::Occupied) setState(pt, Cell::Empty);
         }
     }
 
-    Q_INVOKABLE  void resetAll() {
+    void resetAll() {
         for ( auto &row: m_board ) resetRow(row);
     }
 
@@ -329,13 +334,8 @@ public:
 
         return false;
     }
-    Q_INVOKABLE int/*Cell::Value*/ getState(const QPoint& pt) const {
 
-        if (outOfRange(pt)) return Cell::Undefined;
-
-        return Cell::Value(m_board[pt.y()][pt.x()].toInt());
-    }
-    Q_INVOKABLE void setState(const QPoint& pt, /*Cell::Value*/int state) {
+    void setState(const QPoint& pt, /*Cell::Value*/int state) {
 
         if(outOfRange(pt) || state==Cell::Undefined || getState(pt) == state)
             return;

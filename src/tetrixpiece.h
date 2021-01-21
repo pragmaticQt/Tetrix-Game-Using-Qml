@@ -114,7 +114,7 @@ public:
         return result->y();
     }
 
-    QPoint center() const {return m_center;}
+    const QPoint& center() const {return m_center;}
     void setCenter(const QPoint &center){ if (center != m_center) m_center = center;}
 
 signals:

@@ -33,8 +33,7 @@ class GameBoardListModel : public QAbstractListModel
 
 public:
     GameBoardListModel(QObject *parent = nullptr):
-        QAbstractListModel(parent),
-        m_startPoint({5, 1})
+        QAbstractListModel(parent)
     {
         m_board.reserve(20);
         for (auto i = 0; i < 20; ++i) {
@@ -49,7 +48,6 @@ public:
         m_piece.setCenter(m_startPoint);
         m_piece.setShape(TetrixPiece::getRandomShape());
         fillPiece();
-        fillGhost();
         setNextShape();
     }
     //
@@ -105,12 +103,12 @@ public:
     int shape() const { return m_piece.shape(); }
     void setShape(int shape) {
         if (shape != this->shape()) {
-            clearGhost();
             clearPiece();
+
             m_piece.setShape((TetrixShape::Value)shape);
             emit shapeChanged(this->shape());
+
             fillPiece();
-            fillGhost();
         }
     }
 
@@ -123,17 +121,15 @@ public:
     QSize size() const { return QSize(m_board.size() > 0 ? m_board[0].size() : 0, m_board.size()); }
 
     QPoint startPoint() const { return m_startPoint; }
-    QPoint tetrimino() const { return m_piece.center(); }
+    const QPoint& tetrimino() const { return m_piece.center(); }
     void setTetrimino(const QPoint& point) {
         if (point != tetrimino()) {
-            clearGhost();
             clearPiece();
 
             m_piece.setCenter(point);
             emit tetriminoChanged(tetrimino());
 
             fillPiece();
-            fillGhost();
         }
     }
 
@@ -227,9 +223,6 @@ public:
     }
 
     void landPiece(){
-
-        clearGhost();
-
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
         for ( auto &point: coords ) {
             auto pt = point + m_piece.center();
@@ -281,10 +274,12 @@ public:
 
                 if (getState(pt) == Cell::Empty) setState(pt, Cell::Occupied);
             }
+            fillGhost();
         }
     }
 
     void clearPiece(){
+        clearGhost();
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
         for ( auto &point: coords ) {
             auto pt = point + m_piece.center();
@@ -384,9 +379,9 @@ signals:
 private:
     QList<QVariantList> m_board;
 
-    const QPoint m_startPoint;
+    const QPoint m_startPoint {5, 1};
 
     TetrixPiece m_piece;
-    int m_nextPiece;
+    int m_nextPiece {0};
 };
 #endif // GAMEBOARD_H

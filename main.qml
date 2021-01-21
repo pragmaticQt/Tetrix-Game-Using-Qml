@@ -33,6 +33,7 @@ Window {
             anchors.verticalCenter: parent.verticalCenter
         }
         Column {
+            spacing: 20
             anchors.verticalCenter: parent.verticalCenter
             NextPieceBoard {
                 nextPiece: game.nextShape
@@ -40,9 +41,6 @@ Window {
             ScoreBoard {
                 textContent: game.score
             }
-//            LevelBoard {
-//                textContent: "I"
-//            }
 
             Button {
                 id: button
@@ -77,6 +75,12 @@ Window {
                         break;
                     }
                 }
+            }
+
+            Button {
+                text: qsTr("Stop")
+                anchors.horizontalCenter: parent.horizontalCenter
+                onClicked: gameLogic.stopGame()
             }
         }
     }

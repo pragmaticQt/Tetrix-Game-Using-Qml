@@ -29,3 +29,4 @@ const QPoint TetrixPiece::CoordinatesTable[TetrixShape::Count][TetrixPiece::Tetr
         { { 1, -1 }, { 1, 0 },  { 0, 0 },   { -1, 0 } }, // L3
         { { 1, 1 },  { 1, 0 },  { 0, 0 },   { -1, 0 } }  // Mirrored L3
     };
+

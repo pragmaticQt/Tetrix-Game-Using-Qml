@@ -58,10 +58,10 @@ public:
     static constexpr int TetrixPieceBlocks  = 4;
     static const QPoint CoordinatesTable[TetrixShape::Count][TetrixPieceBlocks];
 
-    Q_INVOKABLE int getRandomShape() const{
+    static TetrixShape::Value getRandomShape() {
         auto randomShapeExceptNoShape = QRandomGenerator::global()->bounded(TetrixShape::Count - 1) + 1;
         //static std::random_device rd;
-        return 1 + randomShapeExceptNoShape % (TetrixShape::Count - 1);
+        return TetrixShape::Value(1 + randomShapeExceptNoShape % (TetrixShape::Count - 1));
     }
 
     static TetrixShape::Value nextShapeIfRotated(TetrixShape::Value shape) {
@@ -114,6 +114,9 @@ public:
         return result->y();
     }
 
+    QPoint center() const {return m_center;}
+    void setCenter(const QPoint &center){ if (center != m_center) m_center = center;}
+
 signals:
     void shapeChanged();
 
@@ -123,6 +126,7 @@ private:
     int x(int index) const { return m_coords[index].x(); }
     int y(int index) const { return m_coords[index].y(); }
 
+    QPoint m_center;
     TetrixShape::Value m_shape = TetrixShape::NoShape;
     QVector<QPoint> m_coords {TetrixPieceBlocks};
 };

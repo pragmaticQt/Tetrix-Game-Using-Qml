@@ -8,7 +8,7 @@ Frame {
     id: root
 
     property int lifeCycle: Game.LifeCycle.Ready
-    readonly property alias nextShape: piece.nextShape
+    readonly property alias nextShape: listModel.nextShape
     readonly property alias score: listModel.score
 
     enum LifeCycle {
@@ -27,15 +27,15 @@ Frame {
     height: board.cellSize * listModel.size.height + (listModel.size.height - 1) * board.spacing + 24
 
     Keys.onPressed: {
-        if (event.key === Qt.Key_Space) { piece.clear(); listModel.hardDrop(piece.shape); piece.landed = true; }
+        if (event.key === Qt.Key_Space) piece.hardDrop()
 
-        if (event.key === Qt.Key_Up/* || event.key === Qt.Key_Space*/) piece.tryRotate()
+        if (event.key === Qt.Key_Up) piece.rotate()
 
-        if (event.key === Qt.Key_Left) piece.tryGoLeft()
+        if (event.key === Qt.Key_Left) piece.goLeft()
 
-        if (event.key === Qt.Key_Right) piece.tryGoRight()
+        if (event.key === Qt.Key_Right) piece.goRight()
 
-        if (event.key === Qt.Key_Down) piece.tryGoDown()
+        if (event.key === Qt.Key_Down) piece.goDown()
 
     }
 
@@ -64,9 +64,9 @@ Frame {
     Connections {
         id: conn
         onStartGame: { // do init and this calls once per game
-
             listModel.score = 0
             listModel.resetAll()
+            listModel.start()
             listModel.dataChanged()
 
             piece.reset()
@@ -84,132 +84,60 @@ Frame {
             bkgMusic.play()
         }
         onStopGame: {
+            piece.dropping = false;
             bkgMusic.stop()
-            root.gameOver()
-
+            gameoverSE.play()
+            root.lifeCycle = Game.Done
+//            listModel.resetAll()
+//            listModel.dataChanged()
         }
     }
+
     Timer {
         id: timer
+
         repeat: true
         running: piece.dropping
         interval: 500
-        onTriggered: {
-            //            console.debug("onTriggered")
-            piece.tryGoDown()
-        }
+        onTriggered: piece.goDown()
     }
-
-    TetrixPiece {
-        id: ghostPiece
-        shape: piece.shape
-    }
-
     TetrixPiece {
         id: piece
 
-        property int nextShape: getRandomShape()
-
-        property bool landed: false
         property bool dropping: false
-
-        onLandedChanged: {
-            if (landed) {
-                landSE.play()
-                listModel.landPiece(piece.shape)
-
-                if (listModel.getState(listModel.startPoint) === Cell.Filled) {
-                    gameLogic.stopGame()
-                    gameoverSE.play()
-                    root.lifeCycle = Game.Done
-                }
-                else {
-                    reset()
-                }
-
-            }
-        }
-
-        onShapeChanged: fillAndUpdate()
+        shape: listModel.shape
 
         function reset() {
-
-            shape = nextShape
-            nextShape = getRandomShape()
-
-            landed = false
             dropping = true
         }
 
-        // public
-        function tryRotate() {
-            if (listModel.canRotate(piece.shape))
-                next()
+        function rotate() {
+            listModel.rotateTetrimino()
+            update()
         }
-        function tryGoLeft() {
-            if (listModel.canGoLeft(piece.shape))
-                goLeft()
+        function hardDrop() {
+            listModel.hardDrop()
+            update()
         }
-        function tryGoRight() {
 
-            if (listModel.canGoRight(piece.shape))
-                goRight()
-        }
-        function tryGoDown() {
-            if ( listModel.canGoDown(piece.shape) )
-                goDown()
-            else {
-                dropping = false
-                landed = true
-            }
-        }
-        // private
         function goDown() {
-            clear()
-
-            listModel.tetriminoGoDown()
-
-            fillAndUpdate()
+            listModel.softDrop()
+            update()
         }
 
         function goLeft() {
-            clear()
-
-            listModel.tetriminoGoLeft()
-
-            fillAndUpdate()
+            listModel.goLeft()
+            update()
         }
 
         function goRight() {
-            clear()
-
-            listModel.tetriminoGoRight()
-
-            fillAndUpdate()
-        }
-
-        function next() {
-            clear()
-            rotate()
-        }
-
-        function fillAndUpdate() {
-            fill()
+            listModel.goRight()
             update()
         }
 
         function update() {
             listModel.dataChanged()
         }
-
-        function fill() {
-            listModel.fillPiece(shape)
-        }
-
-        function clear() {
-            listModel.clearPiece(shape)
-        }
-
     }
 
     Board2 {
@@ -226,14 +154,30 @@ Frame {
 
     GameBoardListModel {
         id: listModel
-        shape: piece.shape
         property int score: 0
 
         signal dataChanged()
 
         onLinesCleared: {
-            score += calcScore(lines)
+            score += calcScore(lines.length)
             clearSE.play()
+        }
+
+        Component.onCompleted: {
+            listModel.gameOver.connect(root.gameOver)
+            listModel.gameOver.connect(gameLogic.stopGame)
+        }
+
+//        onGameOver: {
+//            piece.dropping = false;
+
+//            gameLogic.stopGame()
+//            gameoverSE.play()
+//            root.lifeCycle = Game.Done
+//        }
+        onPieceLanded: {
+            landSE.play()
+            piece.reset()
         }
 
         function calcScore(lines) {

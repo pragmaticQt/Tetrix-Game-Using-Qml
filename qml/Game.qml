@@ -18,7 +18,9 @@ Frame {
         Done
     }
 
+    signal gameStarted()
     signal gamePaused()
+    signal gameResumed()
     signal gameOver()
 
     property alias logic: conn.target
@@ -35,7 +37,7 @@ Frame {
 
         if (event.key === Qt.Key_Right) piece.goRight()
 
-        if (event.key === Qt.Key_Down) piece.goDown()
+        if (event.key === Qt.Key_Down) piece.softDrop()
 
     }
 
@@ -68,25 +70,33 @@ Frame {
             listModel.start()
             listModel.dataChanged()
 
-            piece.reset()
+            piece.resume()
             root.lifeCycle = Game.Running
             bkgMusic.play()
+
+            root.gameStarted()
         }
         onPauseGame: {
-            piece.dropping = false
+            piece.pause()
             root.lifeCycle = Game.Paused
             bkgMusic.pause()
+
+            root.gamePaused()
         }
         onResumeGame: {
-            piece.dropping = true
+            piece.resume()
             root.lifeCycle = Game.Running
             bkgMusic.play()
+
+            root.gameResumed()
         }
         onStopGame: {
-            piece.dropping = false;
+            piece.pause()
+            root.lifeCycle = Game.Done
             bkgMusic.stop()
             gameoverSE.play()
-            root.lifeCycle = Game.Done
+
+            root.gameOver()
         }
     }
 
@@ -94,30 +104,35 @@ Frame {
         id: timer
 
         repeat: true
-        running: piece.dropping
+        running: piece.isDropping
         interval: 500
-        onTriggered: piece.goDown()
+        onTriggered: piece.softDrop()
     }
-    TetrixPiece {
+
+    QtObject {// wrap a piece inside model
         id: piece
 
-        property bool dropping: false
-        shape: listModel.shape
+        property bool isDropping: false
 
-        function reset() {
-            dropping = true
+        function resume() {
+            isDropping = true
+        }
+
+        function pause() {
+            isDropping = false
         }
 
         function rotate() {
             listModel.rotateTetrimino()
             update()
         }
+
         function hardDrop() {
             listModel.hardDrop()
             update()
         }
 
-        function goDown() {
+        function softDrop() {
             listModel.softDrop()
             update()
         }
@@ -149,7 +164,7 @@ Frame {
         model: listModel
     }
 
-    GameBoardListModel {
+    GameBoardModel {
         id: listModel
         property int score: 0
 
@@ -161,11 +176,10 @@ Frame {
         }
 
         Component.onCompleted: {
-            listModel.gameOver.connect(root.gameOver)
             listModel.gameOver.connect(gameLogic.stopGame)
             listModel.pieceLanded.connect(function(){
                 landSE.play()
-                piece.reset()
+                piece.resume()
             })
         }
 

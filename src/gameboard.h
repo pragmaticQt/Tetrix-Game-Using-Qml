@@ -198,18 +198,22 @@ public:
         replacePiece(Cell::Any, Cell::Filled);
         emit pieceLanded();
 
-        m_piece.setShape(TetrixShape::NoShape);
-
+        // only current piece area needs detection
         QVariantList linesFilled;
-        for (auto i = 0; i < m_board.size(); ++i) {
-            auto b = std::all_of(std::begin(m_board[i]), std::end(m_board[i]),
+        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
+        for ( const auto &point: coords ) {
+            QPoint pt = point + m_piece.center();
+            auto b = std::all_of(std::begin(m_board[pt.y()]), std::end(m_board[pt.y()]),
                                  [&](const auto&cell) {return cell==Cell::Filled;});
             if (b) {
-                linesFilled.push_back(i);
-                resetRow(m_board[i]);
+                linesFilled.push_back(pt.y());
+                resetRow(m_board[pt.y()]);
             }
         }
 
+        m_piece.setShape(TetrixShape::NoShape);
+
+        // remove these black lines upward
         if (linesFilled.size()) {
             std::stable_partition(std::begin(m_board), std::end(m_board), [](const auto& row) {
                 return std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Empty;});
@@ -217,11 +221,13 @@ public:
             emit linesCleared(linesFilled);
         }
 
+        // check if game over
         if (getState(m_startPoint) == Cell::Filled) {
             emit gameOver();
             return;
         }
 
+        // start over
         m_piece.setShape((TetrixShape::Value)nextShape());
         setNextShape();
         m_piece.setCenter(m_startPoint);

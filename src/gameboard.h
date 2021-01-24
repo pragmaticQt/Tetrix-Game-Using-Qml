@@ -13,6 +13,7 @@ class Cell {
     Q_GADGET
 public:
     enum Value {
+        Any = -2,
         Undefined = -1, // out of range
         Empty = 0,      // inrange,
         Occupied,       // piece is drawn here temperarily
@@ -47,7 +48,6 @@ public:
         resetAll();
         m_piece.setCenter(m_startPoint);
         m_piece.setShape(TetrixPiece::getRandomShape());
-        m_distance = canGoDownMost();
         fillPiece();
         setNextShape();
     }
@@ -86,7 +86,7 @@ public:
     }
     // drop tetrimino directly to its final position
     Q_INVOKABLE  void hardDrop(){
-        auto distance = m_distance/*canGoDownMost()*/;
+        auto distance = canGoDownMost();
         if (distance) {
             clearPiece();
             setTetrimino({m_piece.center().x(), m_piece.center().y() + distance});
@@ -102,18 +102,14 @@ public:
     }
     //
     int shape() const { return m_piece.shape(); }
+private:
     void setShape(int shape) {
         if (shape != this->shape()) {
-            clearPiece();
-
             m_piece.setShape((TetrixShape::Value)shape);
             emit shapeChanged(this->shape());
-            m_distance = canGoDownMost();
-
-            fillPiece();
         }
     }
-
+public:
     int nextShape() const { return m_nextPiece; }
     void setNextShape() {
         m_nextPiece = TetrixPiece::getRandomShape();
@@ -130,7 +126,6 @@ public:
 
             m_piece.setCenter(point);
             emit tetriminoChanged(tetrimino());
-            m_distance = canGoDownMost();
 
             fillPiece();
         }
@@ -200,23 +195,15 @@ public:
     }
 
     void landPiece(){
-        const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
-        for ( auto &point: coords ) {
-            auto pt = point + m_piece.center();
-
-            if (outOfRange(pt))
-                continue;
-
-            setState(pt, Cell::Filled);
-
-        }
+        replacePiece(Cell::Any, Cell::Filled);
         emit pieceLanded();
 
         m_piece.setShape(TetrixShape::NoShape);
 
         QVariantList linesFilled;
         for (auto i = 0; i < m_board.size(); ++i) {
-            auto b = std::all_of(std::begin(m_board[i]), std::end(m_board[i]), [&](const auto&cell) {return cell==Cell::Filled;});
+            auto b = std::all_of(std::begin(m_board[i]), std::end(m_board[i]),
+                                 [&](const auto&cell) {return cell==Cell::Filled;});
             if (b) {
                 linesFilled.push_back(i);
                 resetRow(m_board[i]);
@@ -240,53 +227,44 @@ public:
         m_piece.setCenter(m_startPoint);
     }
 
-    void fillPiece(){
-        if (shape() != TetrixShape::NoShape) {
+private:
+    void replaceGhost(Cell::Value oldValue, Cell::Value newValue) {
+        auto distance = canGoDownMost();
+        if (distance > 1) {
             const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
-            for ( auto &point: coords ) {
-                auto pt = point + m_piece.center();
+            for ( const auto &point: coords ) {
+                QPoint pt = point + m_piece.center();
+                pt.ry() += distance;
 
                 if (outOfRange(pt))
                     continue;
 
-                if (getState(pt) == Cell::Empty) setState(pt, Cell::Occupied);
-            }
-            //fillGhost();
-            if (m_distance > 1) {
-                for ( auto &point: coords ) {
-                    QPoint pt = point + m_piece.center();
-                    pt.ry() += m_distance;
-
-                    if (outOfRange(pt))
-                        continue;
-
-                    if (getState(pt) == Cell::Empty) setState(pt, Cell::Ghost);
-                }
+                if (getState(pt) == oldValue) setState(pt, newValue);
             }
         }
     }
 
-    void clearPiece(){
-        //clearGhost();
+    void replacePiece(Cell::Value oldValue, Cell::Value newValue) {
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
-        for ( auto &point: coords ) {
+        for ( const auto &point: coords ) {
             QPoint pt = point + m_piece.center();
-            pt.ry() += m_distance;
 
             if (outOfRange(pt))
                 continue;
 
-            if (getState(pt) == Cell::Ghost) setState(pt, Cell::Empty);
+            if (getState(pt) == oldValue || Cell::Any == oldValue) setState(pt, newValue);
         }
-
-        for ( auto &point: coords ) {
-            auto pt = point + m_piece.center();
-
-            if (outOfRange(pt))
-                continue;
-
-            if (getState(pt) == Cell::Occupied) setState(pt, Cell::Empty);
+    }
+public:
+    void fillPiece(){
+        if (shape() != TetrixShape::NoShape) {
+            replacePiece(Cell::Empty, Cell::Occupied);
+            replaceGhost(Cell::Empty, Cell::Ghost);
         }
+    }
+    void clearPiece(){
+        replaceGhost(Cell::Ghost, Cell::Empty);
+        replacePiece(Cell::Occupied, Cell::Empty);
     }
 
     void resetAll() {
@@ -381,6 +359,5 @@ private:
 
     TetrixPiece m_piece;
     int m_nextPiece {0};
-    int m_distance {0};
 };
 #endif // GAMEBOARD_H

@@ -136,9 +136,9 @@ public:
         auto nextShape = TetrixPiece::nextShapeIfRotated((TetrixShape::Value)shape());
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)nextShape];
 
-        return std::none_of(std::begin(coords), std::end(coords),
+        return std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange(pt);}) &&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return getState(pt)==Cell::Filled;});
     }
     // never go up
@@ -149,22 +149,22 @@ public:
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
 
-        return std::none_of(std::begin(coords), std::end(coords),
+        return std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange(pt);})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange({pt.x()-1, pt.y()});})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->getState({pt.x()-1, pt.y()}) == Cell::Filled;});
     }
     bool canGoRight() const {
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
 
-        return std::none_of(std::begin(coords), std::end(coords),
+        return std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange(pt);})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange({pt.x()+1, pt.y()});})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->getState({pt.x()+1, pt.y()}) == Cell::Filled;});
     }
     // piece movement detection
@@ -173,11 +173,11 @@ public:
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
         QPoint startPt = m_piece.center();
 
-        while (std::none_of(std::begin(coords), std::end(coords),
+        while (std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + startPt;return this->outOfRange(pt);})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + startPt;return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + startPt;return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;}))
             startPt.ry() += 1;
         return startPt.y() - m_piece.center().y();
@@ -186,11 +186,11 @@ public:
 
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
 
-        return std::none_of(std::begin(coords), std::end(coords),
+        return std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange(pt);})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->outOfRange(QPoint(pt.x(), pt.y()+1));})&&
-               std::none_of(std::begin(coords), std::end(coords),
+               std::none_of(std::cbegin(coords), std::cend(coords),
                             [&](const auto &point){ auto pt = point + m_piece.center();return this->getState(QPoint(pt.x(), pt.y()+1)) == Cell::Filled;});
     }
 
@@ -200,14 +200,17 @@ public:
 
         // only current piece area needs detection
         QVariantList linesFilled;
+
         const auto& coords = TetrixPiece::CoordinatesTable[(TetrixShape::Value)shape()];
         for ( const auto &point: coords ) {
             QPoint pt = point + m_piece.center();
-            auto b = std::all_of(std::begin(m_board[pt.y()]), std::end(m_board[pt.y()]),
-                                 [&](const auto&cell) {return cell==Cell::Filled;});
-            if (b) {
-                linesFilled.push_back(pt.y());
-                resetRow(m_board[pt.y()]);
+            if (!linesFilled.contains(pt.y())) {
+                auto b = std::all_of(std::cbegin(m_board[pt.y()]), std::cend(m_board[pt.y()]),
+                                     [&](const auto&cell) {return cell==Cell::Filled;});
+                if (b) {
+                    linesFilled.push_back(pt.y());
+                    resetRow(m_board[pt.y()]);
+                }
             }
         }
 
@@ -216,7 +219,7 @@ public:
         // remove these black lines upward
         if (linesFilled.size()) {
             std::stable_partition(std::begin(m_board), std::end(m_board), [](const auto& row) {
-                return std::all_of(std::begin(row), std::end(row), [&](const auto&cell) {return cell==Cell::Empty;});
+                return std::all_of(std::cbegin(row), std::cend(row), [&](const auto&cell) {return cell==Cell::Empty;});
             });
             emit linesCleared(linesFilled);
         }
